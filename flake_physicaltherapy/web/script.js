@@ -16,18 +16,18 @@ window.addEventListener('message', function (event) {
     } else if (data.action === 'close') {
         closeUI();
     } else if (data.action === 'pedPlacementResult') {
-        const { name, coords } = data;
+        const { name, ped, steps } = data;
         if (!configData.TherapyLocations) configData.TherapyLocations = {};
+        const mkStep = (c, i) => ({
+            coords: c || { x: 0, y: 0, z: 0, w: 0 },
+            progress: { duration: 20000, label: 'Step ' + (i + 1), canCancel: false, disable: { move: true, combat: true }, anim: { dict: '', clip: '', flag: 7 } }
+        });
         configData.TherapyLocations[name] = {
-            coords: { ...coords },
+            coords: { ...ped },
             cost: 500,
             showBlip: true,
-            ped: { model: 's_m_m_doctor_01', coords: { ...coords } },
-            steps: [
-                { coords: { x: 0, y: 0, z: 0, w: 0 }, progress: { duration: 20000, label: 'Step 1', canCancel: false, disable: { move: true, combat: true }, anim: { dict: '', clip: '', flag: 7 } } },
-                { coords: { x: 0, y: 0, z: 0, w: 0 }, progress: { duration: 20000, label: 'Step 2', canCancel: false, disable: { move: true, combat: true }, anim: { dict: '', clip: '', flag: 7 } } },
-                { coords: { x: 0, y: 0, z: 0, w: 0 }, progress: { duration: 20000, label: 'Step 3', canCancel: false, disable: { move: true, combat: true }, anim: { dict: '', clip: '', flag: 7 } } }
-            ]
+            ped: { model: 's_m_m_doctor_01', coords: { ...ped } },
+            steps: [mkStep(steps[0], 0), mkStep(steps[1], 1), mkStep(steps[2], 2)]
         };
         document.getElementById('app').style.display = 'flex';
         selectedLocation = name;
