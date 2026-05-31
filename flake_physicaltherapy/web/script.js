@@ -15,6 +15,27 @@ window.addEventListener('message', function (event) {
         selectTab('general');
     } else if (data.action === 'close') {
         closeUI();
+    } else if (data.action === 'pedPlacementResult') {
+        const { name, coords } = data;
+        if (!configData.TherapyLocations) configData.TherapyLocations = {};
+        configData.TherapyLocations[name] = {
+            coords: { ...coords },
+            cost: 500,
+            showBlip: true,
+            ped: { model: 's_m_m_doctor_01', coords: { ...coords } },
+            steps: [
+                { coords: { x: 0, y: 0, z: 0, w: 0 }, progress: { duration: 20000, label: 'Step 1', canCancel: false, disable: { move: true, combat: true }, anim: { dict: '', clip: '', flag: 7 } } },
+                { coords: { x: 0, y: 0, z: 0, w: 0 }, progress: { duration: 20000, label: 'Step 2', canCancel: false, disable: { move: true, combat: true }, anim: { dict: '', clip: '', flag: 7 } } },
+                { coords: { x: 0, y: 0, z: 0, w: 0 }, progress: { duration: 20000, label: 'Step 3', canCancel: false, disable: { move: true, combat: true }, anim: { dict: '', clip: '', flag: 7 } } }
+            ]
+        };
+        document.getElementById('app').style.display = 'flex';
+        selectedLocation = name;
+        renderLocationList();
+        renderLocationEditor(name, configData.TherapyLocations[name]);
+        selectTab('locations');
+    } else if (data.action === 'pedPlacementCancelled') {
+        document.getElementById('app').style.display = 'flex';
     }
 });
 
@@ -208,22 +229,12 @@ document.getElementById('addLocationBtn').addEventListener('click', () => {
             showToast('Location already exists', 'error');
             return;
         }
-        if (!configData.TherapyLocations) configData.TherapyLocations = {};
-        configData.TherapyLocations[name] = {
-            coords: { x: 0, y: 0, z: 0, w: 0 },
-            cost: 500,
-            showBlip: true,
-            ped: { model: 's_m_m_doctor_01', coords: { x: 0, y: 0, z: 0, w: 0 } },
-            steps: [
-                { coords: { x: 0, y: 0, z: 0, w: 0 }, progress: { duration: 20000, label: 'Step 1', canCancel: false, disable: { move: true, combat: true }, anim: { dict: '', clip: '', flag: 7 } } },
-                { coords: { x: 0, y: 0, z: 0, w: 0 }, progress: { duration: 20000, label: 'Step 2', canCancel: false, disable: { move: true, combat: true }, anim: { dict: '', clip: '', flag: 7 } } },
-                { coords: { x: 0, y: 0, z: 0, w: 0 }, progress: { duration: 20000, label: 'Step 3', canCancel: false, disable: { move: true, combat: true }, anim: { dict: '', clip: '', flag: 7 } } }
-            ]
-        };
-        selectedLocation = name;
-        renderLocationList();
-        renderLocationEditor(name, configData.TherapyLocations[name]);
-        selectTab('locations');
+        // Hide UI and enter 3D ped placement mode in-world
+        document.getElementById('app').style.display = 'none';
+        fetch(`https://${GetParentResourceName()}/startPedPlacement`, {
+            method: 'POST',
+            body: JSON.stringify({ name })
+        });
     });
 });
 
@@ -311,7 +322,7 @@ function renderStepCard(number, step) {
     body.appendChild(mkUsePosBtn(`s${number}Coords`));
     body.appendChild(stepCoordField);
     body.appendChild(mkRow([
-        fieldNum('Duration (ms)', `s${number}Dur`, p.duration),
+        fieldNum('Duration (seconds)', `s${number}Dur`, p.duration / 1000),
         field('Label', 'text', p.label, { id: `s${number}Label` })
     ]));
     body.appendChild(mkRow([
@@ -630,7 +641,7 @@ function readLocationData() {
         loc.steps.push({
             coords: parseCoordField(`s${idx}Coords`),
             progress: {
-                duration: intVal(`s${idx}Dur`),
+                duration: intVal(`s${idx}Dur`) * 1000,
                 label: document.getElementById(`s${idx}Label`)?.value || 'Step',
                 canCancel: !!document.getElementById(`s${idx}Cancel`)?.checked,
                 disable: {
