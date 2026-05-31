@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flake Physical Therapy Admin</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app" class="mac-window" style="display:none">
+    <!-- Title bar (drag handle) -->
+    <div class="title-bar" id="titleBar">
+        <div class="traffic-lights">
+            <div class="light red" id="closeBtn" data-title="Close"><i class="fa-solid fa-xmark"></i></div>
+            <div class="light yellow" id="minimizeBtn" data-title="Minimize"><i class="fa-solid fa-minus"></i></div>
+            <div class="light green" id="maximizeBtn" data-title="Fullscreen"><i class="fa-solid fa-expand"></i></div>
+        </div>
+        <span class="title-bar-text">Flake Physical Therapy Admin</span>
+    </div>
+
+    <!-- Content area -->
+    <div class="window-content" id="windowContent">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <button class="tab-btn active" data-tab="general"><i class="fa-solid fa-gear"></i> General</button>
+            <button class="tab-btn" data-tab="locations"><i class="fa-solid fa-location-dot"></i> Locations</button>
+        </div>
+
+        <!-- Panel -->
+        <div class="panel">
+            <!-- General Settings Tab -->
+            <div class="tab-panel active" id="panel-general">
+                <!-- Core Settings -->
+                <div class="section-card">
+                    <h3><i class="fa-solid fa-sliders"></i> Core Settings</h3>
+                    <div class="form-grid">
+                        <div class="field"><label>Debug Mode</label><div class="toggle-wrap"><input type="checkbox" id="debug"><span class="toggle-track"></span><span class="toggle-label">Enabled</span></div></div>
+                        <div class="field"><label>Interaction Distance</label><input type="number" step="0.1" id="distance"></div>
+                        <div class="field">
+                            <label>Target System</label>
+                            <select id="system">
+                                <option value="textui">textui</option>
+                                <option value="ox_target">ox_target</option>
+                                <option value="qb-target">qb-target</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cooldown -->
+                <div class="section-card">
+                    <h3><i class="fa-solid fa-clock"></i> Cooldown</h3>
+                    <div class="form-grid">
+                        <div class="field"><label>Enable Cooldown</label><div class="toggle-wrap"><input type="checkbox" id="cooldownEnable"><span class="toggle-track"></span><span class="toggle-label">Enabled</span></div></div>
+                        <div class="field"><label>Cooldown Time (seconds)</label><input type="number" id="cooldownTime"></div>
+                    </div>
+                </div>
+
+                <!-- Doctor Slip -->
+                <div class="section-card">
+                    <h3><i class="fa-solid fa-file-medical"></i> Doctor Slip Item</h3>
+                    <div class="form-grid">
+                        <div class="field"><label>Enable Doctor Slip</label><div class="toggle-wrap"><input type="checkbox" id="slipEnable"><span class="toggle-track"></span><span class="toggle-label">Enabled</span></div></div>
+                        <div class="field"><label>Item Name</label><input type="text" id="slipItem"></div>
+                    </div>
+                </div>
+
+                <!-- EMS -->
+                <div class="section-card">
+                    <h3><i class="fa-solid fa-truck-medical"></i> EMS Requirements</h3>
+                    <div class="form-grid">
+                        <div class="field"><label>Minimum EMS Count</label><input type="number" id="emsCount"></div>
+                        <div class="field full-width">
+                            <label>EMS Jobs (comma-separated)</label>
+                            <input type="text" id="emsJobs" placeholder="ambulance, ems, doctor">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Locations Tab -->
+            <div class="tab-panel" id="panel-locations">
+                <div class="locations-layout">
+                    <!-- Left: location list -->
+                    <div class="location-list-section">
+                        <div class="section-header">
+                            <h3>Locations</h3>
+                            <button class="icon-btn" id="addLocationBtn" title="Add Location"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                        <ul id="locationList"></ul>
+                    </div>
+
+                    <!-- Right: location editor -->
+                    <div class="location-editor" id="locationEditor">
+                        <div class="editor-placeholder">Select a location to edit</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer / Save Bar -->
+    <div class="window-footer">
+        <span class="status" id="statusText">Ready</span>
+        <button class="save-btn" id="saveBtn"><i class="fa-solid fa-floppy-disk"></i> Save Config</button>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
