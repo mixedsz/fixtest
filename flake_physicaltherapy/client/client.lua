@@ -149,7 +149,7 @@ local function SpawnLocation(locName, locData)
         modelHash,
         locData.ped.coords.x,
         locData.ped.coords.y,
-        locData.ped.coords.z - 1.0,
+        locData.ped.coords.z,
         locData.ped.coords.w,
         false,
         true
