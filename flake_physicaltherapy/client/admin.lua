@@ -96,8 +96,6 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
     local lastStage = nil
     local placed    = { ped = nil, steps = {} }
 
-    local lastFloorPos = nil  -- last known good floor hit
-
     local function getRay()
         local cam = GetGameplayCamCoord()
         local rot = GetGameplayCamRot(2)
@@ -106,13 +104,20 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
         local dir = vector3(-math.sin(f) * math.cos(p), math.cos(f) * math.cos(p), math.sin(p))
         local dst = cam + dir * 60.0
         local ray = StartShapeTestRay(cam.x, cam.y, cam.z, dst.x, dst.y, dst.z, 1 + 16, ghostPed, 0)
-        local _, hit, pos, normal = GetShapeTestResult(ray)
-        -- Only accept surfaces that are mostly horizontal (floor/ground), reject walls
-        if hit and normal and normal.z > 0.5 then
-            lastFloorPos = pos
-            return true, pos
+        local _, hit, pos = GetShapeTestResult(ray)
+        if not hit then return false, nil end
+
+        -- Whatever the ray hit (floor OR wall), shoot a downward ray from that X,Y
+        -- to find the actual floor beneath the cursor — ped follows along any surface
+        local above = vector3(pos.x, pos.y, pos.z + 2.0)
+        local below = vector3(pos.x, pos.y, pos.z - 4.0)
+        local dray  = StartShapeTestRay(above.x, above.y, above.z, below.x, below.y, below.z, 1 + 16, ghostPed, 0)
+        local _, dhit, dpos, dnormal = GetShapeTestResult(dray)
+        if dhit and dnormal and dnormal.z > 0.5 then
+            return true, dpos
         end
-        return false, lastFloorPos
+        -- Fallback: use hit pos directly if downward ray found nothing
+        return true, pos
     end
 
     local function placeOnFloor(x, y, z)
@@ -154,19 +159,19 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
             -- Update ox_lib textui only on stage change
             if stage ~= lastStage then
                 if stage == 'ped' then
-                    lib.showTextUI('[LMB] Place Ped  |  [Scroll] Rotate  |  [L.Alt] Snap to Ground  |  [RMB] Cancel', {
+                    lib.showTextUI('**Place Therapy Ped**\n**[LMB]** Confirm Position\n**[Scroll ↑↓]** Rotate\n**[L.Alt]** Snap to Ground\n**[RMB]** Cancel', {
                         position = 'left-center', icon = 'user-doctor'
                     })
                 elseif stage == 'step1' then
-                    lib.showTextUI('[LMB] Set Step 1  |  [RMB] Skip All Steps', {
+                    lib.showTextUI('**Step 1 of 3**\n**[LMB]** Set Position\n**[RMB]** Skip All Steps', {
                         position = 'left-center', icon = 'location-dot'
                     })
                 elseif stage == 'step2' then
-                    lib.showTextUI('[LMB] Set Step 2  |  [RMB] Skip Remaining', {
+                    lib.showTextUI('**Step 2 of 3**\n**[LMB]** Set Position\n**[RMB]** Skip Remaining', {
                         position = 'left-center', icon = 'location-dot'
                     })
                 elseif stage == 'step3' then
-                    lib.showTextUI('[LMB] Set Step 3  |  [RMB] Finish', {
+                    lib.showTextUI('**Step 3 of 3**\n**[LMB]** Set Position\n**[RMB]** Finish', {
                         position = 'left-center', icon = 'location-dot'
                     })
                 end
