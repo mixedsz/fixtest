@@ -79,6 +79,7 @@ end)
 
 local SpawnedPeds   = {}
 local ActiveThreads = {}
+local SpawnedBlips  = {}
 
 -- Convert payload tables back into vectors for FiveM
 local function applyPayloadToConfig(tbl)
@@ -129,6 +130,11 @@ local function StopAndCleanAllLocations()
     for _, name in ipairs(threadNames) do
         ActiveThreads[name] = nil
     end
+
+    for name, blip in pairs(SpawnedBlips) do
+        if DoesBlipExist(blip) then RemoveBlip(blip) end
+        SpawnedBlips[name] = nil
+    end
 end
 
 local function SpawnLocation(locName, locData)
@@ -157,6 +163,20 @@ local function SpawnLocation(locName, locData)
 
     SpawnedPeds[locName] = ped
     ActiveThreads[locName] = true
+
+    -- Blip
+    if locData.showBlip then
+        local blip = AddBlipForCoord(locData.ped.coords.x, locData.ped.coords.y, locData.ped.coords.z)
+        SetBlipSprite(blip, 50)
+        SetBlipDisplay(blip, 4)
+        SetBlipScale(blip, 0.8)
+        SetBlipColour(blip, 2)
+        SetBlipAsShortRange(blip, true)
+        BeginTextCommandSetBlipName('STRING')
+        AddTextComponentString(locName)
+        EndTextCommandSetBlipName(blip)
+        SpawnedBlips[locName] = blip
+    end
 
     -- Interaction system
     if Config.System == 'ox_target' then

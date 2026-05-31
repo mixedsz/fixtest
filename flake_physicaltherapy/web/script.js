@@ -541,7 +541,7 @@ function toggleField(label, id, checked) {
     return {
         tag: 'div', cls: 'field', children: [
             { tag: 'label', text: label },
-            { tag: 'div', cls: 'toggle-wrap', children: [
+            { tag: 'label', cls: 'toggle-wrap', children: [
                 { tag: 'input', attrs: { type: 'checkbox', id, checked: !!checked } },
                 { tag: 'span', cls: 'toggle-track' },
                 { tag: 'span', cls: 'toggle-label', text: checked ? 'On' : 'Off' }
