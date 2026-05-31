@@ -11,14 +11,12 @@ shared_scripts {
 }
 
 client_scripts {
-    'client/cl_notifications.lua',
     'client/admin.lua',
     'client/client.lua',
 }
 
 server_scripts {
     '@oxmysql/lib/MySQL.lua',
-    'server/sv_notifications.lua',
     'server/server.lua',
 }
 
@@ -31,8 +29,6 @@ files {
 ui_page 'web/index.html'
 
 escrow_ignore {
-    'client/cl_notifications.lua',
-    'server/sv_notifications.lua',
     'config/*.lua',
 }
 
