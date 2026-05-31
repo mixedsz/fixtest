@@ -124,6 +124,7 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
     SetEntityAlpha(ghostPed, 150, false)
     SetEntityCollision(ghostPed, false, false)
     FreezeEntityPosition(ghostPed, true)
+    TaskStandStill(ghostPed, -1)  -- force upright stand pose, no spawn animation
 
     local pedHeading = 0.0
     local stage      = 'ped'
@@ -169,8 +170,9 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
 
             if stage == 'ped' then
                 if rayHit then
-                    -- place ped directly at the surface the camera ray hits — no Z math needed
-                    SetEntityCoordsNoOffset(ghostPed, rayPos.x, rayPos.y, rayPos.z, false, false, false)
+                    -- Ped entity origin is at pelvis (~1.0m above feet).
+                    -- Add 1.0 so feet land exactly on the surface Z the ray returned.
+                    SetEntityCoordsNoOffset(ghostPed, rayPos.x, rayPos.y, rayPos.z + 1.0, false, false, false)
                 end
 
                 -- rotation: scroll wheel (one click = 5°) or held arrow keys (1°/frame)
@@ -184,7 +186,8 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
 
                 if IsDisabledControlJustPressed(0, 24) then   -- LMB confirm
                     local pos = GetEntityCoords(ghostPed)
-                    placed.ped = { x = pos.x, y = pos.y, z = pos.z, w = pedHeading }
+                    -- subtract the 1.0 offset so the saved Z is at true floor level
+                    placed.ped = { x = pos.x, y = pos.y, z = pos.z - 1.0, w = pedHeading }
                     SetEntityAlpha(ghostPed, 50, false)
                     stage = 'step1'
                 elseif IsDisabledControlJustPressed(0, 25) then  -- RMB cancel
