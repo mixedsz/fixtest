@@ -109,42 +109,65 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
     end
 
     local function snapToGround(x, y, z)
-        SetEntityCoordsNoOffset(ghostPed, x, y, z + 1.0, false, false, false)
-        local found, gz = GetGroundZFor_3dCoord(x, y, z + 1.0, false)
-        if found then
-            SetEntityCoordsNoOffset(ghostPed, x, y, gz, false, false, false)
-        end
+        -- Ray already hit the surface — place directly at hit pos then let the engine correct foot offset
+        SetEntityCoordsNoOffset(ghostPed, x, y, z, false, false, false)
         PlaceObjectOnGroundProperly(ghostPed)
+    end
+
+    local function forceGroundSnap()
+        local pos = GetEntityCoords(ghostPed)
+        SetEntityCoordsNoOffset(ghostPed, pos.x, pos.y, pos.z + 2.0, false, false, false)
+        PlaceObjectOnGroundProperly(ghostPed)
+        local found, gz = GetGroundZFor_3dCoord(pos.x, pos.y, pos.z + 2.0, false)
+        if found then
+            SetEntityCoordsNoOffset(ghostPed, pos.x, pos.y, gz, false, false, false)
+            PlaceObjectOnGroundProperly(ghostPed)
+        end
     end
 
     CreateThread(function()
         while stage ~= 'done' and stage ~= 'cancel' do
             Wait(0)
 
-            -- Intercept mouse clicks and scroll
+            -- Intercept mouse clicks, scroll, and LAlt
             DisableControlAction(0, 24,  true)  -- LMB
             DisableControlAction(0, 25,  true)  -- RMB
             DisableControlAction(0, 241, true)  -- scroll up
             DisableControlAction(0, 242, true)  -- scroll down
+            DisableControlAction(0, 19,  true)  -- Left Alt
 
             -- Update ox_lib textui only on stage change
             if stage ~= lastStage then
                 if stage == 'ped' then
-                    lib.showTextUI('[LMB] Set Ped   [Scroll ↑↓] Rotate   [RMB] Cancel', {
-                        position = 'top-center', icon = 'user-doctor'
-                    })
+                    lib.showTextUI(
+                        '**Place Therapy Ped**\n' ..
+                        '~g~[LMB]~s~ Confirm position\n' ..
+                        '~b~[Scroll]~s~ Rotate left / right\n' ..
+                        '~y~[L.ALT]~s~ Snap to ground\n' ..
+                        '~r~[RMB]~s~ Cancel',
+                        { position = 'left-center', icon = 'user-doctor' }
+                    )
                 elseif stage == 'step1' then
-                    lib.showTextUI('[LMB] Set Step 1 Position   [RMB] Skip Remaining Steps', {
-                        position = 'top-center', icon = 'location-dot'
-                    })
+                    lib.showTextUI(
+                        '**Step 1 of 3 — Walk Position**\n' ..
+                        '~g~[LMB]~s~ Confirm\n' ..
+                        '~r~[RMB]~s~ Skip remaining steps',
+                        { position = 'left-center', icon = 'location-dot' }
+                    )
                 elseif stage == 'step2' then
-                    lib.showTextUI('[LMB] Set Step 2 Position   [RMB] Skip Remaining Steps', {
-                        position = 'top-center', icon = 'location-dot'
-                    })
+                    lib.showTextUI(
+                        '**Step 2 of 3 — Exercise Position**\n' ..
+                        '~g~[LMB]~s~ Confirm\n' ..
+                        '~r~[RMB]~s~ Skip remaining steps',
+                        { position = 'left-center', icon = 'location-dot' }
+                    )
                 elseif stage == 'step3' then
-                    lib.showTextUI('[LMB] Set Step 3 Position   [RMB] Finish', {
-                        position = 'top-center', icon = 'location-dot'
-                    })
+                    lib.showTextUI(
+                        '**Step 3 of 3 — Final Position**\n' ..
+                        '~g~[LMB]~s~ Confirm\n' ..
+                        '~r~[RMB]~s~ Finish & save',
+                        { position = 'left-center', icon = 'location-dot' }
+                    )
                 end
                 lastStage = stage
             end
@@ -162,6 +185,11 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
                 end
                 if IsDisabledControlJustPressed(0, 242) then
                     SetEntityHeading(ghostPed, GetEntityHeading(ghostPed) - 10.0)
+                end
+
+                -- L.Alt: force snap to ground
+                if IsDisabledControlJustPressed(0, 19) then
+                    forceGroundSnap()
                 end
 
                 if IsDisabledControlJustPressed(0, 24) then  -- LMB: confirm ped
