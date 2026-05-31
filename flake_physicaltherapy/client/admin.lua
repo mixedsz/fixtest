@@ -75,7 +75,7 @@ end)
 -- Stages 2-4: place each step marker (LMB confirm, RMB skip rest)
 -- =====================
 
-local function placementRay()
+local function placementRay(ignoreEnt)
     local cam = GetGameplayCamCoord()
     local rot = GetGameplayCamRot(2)
     local rad = math.pi / 180
@@ -85,11 +85,26 @@ local function placementRay()
          math.sin(rot.x * rad)
     )
     local dst = cam + dir * 1000.0
-    local _, hit, pos = GetShapeTestResult(
+    local _, hit, pos, normal = GetShapeTestResult(
         StartShapeTestRay(cam.x, cam.y, cam.z, dst.x, dst.y, dst.z, -1, PlayerPedId(), 0)
     )
-    -- hit is a boolean in FiveM Lua5.4 — return it directly, never compare == 1
-    return hit, pos
+    if not hit then return false, nil end
+
+    -- Surface is mostly horizontal (floor) — use Z directly
+    if normal and normal.z > 0.5 then
+        return true, pos
+    end
+
+    -- Ray hit a wall or ceiling — shoot straight down from that X,Y to find the floor beneath
+    local _, fhit, fpos, fnormal = GetShapeTestResult(
+        StartShapeTestRay(pos.x, pos.y, pos.z + 2.0, pos.x, pos.y, pos.z - 10.0, -1, PlayerPedId(), 0)
+    )
+    if fhit and fnormal and fnormal.z > 0.5 then
+        return true, fpos
+    end
+
+    -- Fallback: use whatever the primary ray hit
+    return true, pos
 end
 
 RegisterNUICallback('startPedPlacement', function(data, cb)
