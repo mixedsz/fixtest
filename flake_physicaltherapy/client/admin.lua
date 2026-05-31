@@ -76,20 +76,20 @@ end)
 -- =====================
 
 local function placementRay()
-    local cam   = GetGameplayCamCoord()
-    local rot   = GetGameplayCamRot(2)
-    local rad   = math.pi / 180
-    local dir   = vector3(
+    local cam = GetGameplayCamCoord()
+    local rot = GetGameplayCamRot(2)
+    local rad = math.pi / 180
+    local dir = vector3(
         -math.sin(rot.z * rad) * math.abs(math.cos(rot.x * rad)),
          math.cos(rot.z * rad) * math.abs(math.cos(rot.x * rad)),
          math.sin(rot.x * rad)
     )
-    local dst   = cam + dir * 1000.0
-    -- flag -1 = all geometry; ignore PlayerPedId so the ray passes through the player
-    local _, hit, pos, _, _ = GetShapeTestResult(
+    local dst = cam + dir * 1000.0
+    local _, hit, pos = GetShapeTestResult(
         StartShapeTestRay(cam.x, cam.y, cam.z, dst.x, dst.y, dst.z, -1, PlayerPedId(), 0)
     )
-    return hit == 1, pos
+    -- hit is a boolean in FiveM Lua5.4 — return it directly, never compare == 1
+    return hit, pos
 end
 
 RegisterNUICallback('startPedPlacement', function(data, cb)
@@ -101,14 +101,8 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
     RequestModel(modelHash)
     while not HasModelLoaded(modelHash) do Wait(0) end
 
-    -- wait for a valid surface hit before spawning the ped
-    local hit, coords = false, nil
-    while not hit do
-        hit, coords = placementRay()
-        Wait(0)
-    end
-
-    local ghostPed = CreatePed(4, modelHash, coords.x, coords.y, coords.z, 0.0, false, true)
+    local spawnPos = GetEntityCoords(PlayerPedId())
+    local ghostPed = CreatePed(4, modelHash, spawnPos.x, spawnPos.y, spawnPos.z, 0.0, false, true)
     SetEntityInvincible(ghostPed, true)
     SetBlockingOfNonTemporaryEvents(ghostPed, true)
     SetEntityAsMissionEntity(ghostPed, true, true)
