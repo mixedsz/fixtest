@@ -75,6 +75,23 @@ end)
 -- Stages 2-4: place each step marker (LMB confirm, RMB skip rest)
 -- =====================
 
+local function placementRay()
+    local cam   = GetGameplayCamCoord()
+    local rot   = GetGameplayCamRot(2)
+    local rad   = math.pi / 180
+    local dir   = vector3(
+        -math.sin(rot.z * rad) * math.abs(math.cos(rot.x * rad)),
+         math.cos(rot.z * rad) * math.abs(math.cos(rot.x * rad)),
+         math.sin(rot.x * rad)
+    )
+    local dst   = cam + dir * 1000.0
+    -- flag -1 = all geometry; ignore PlayerPedId so the ray passes through the player
+    local _, hit, pos, _, _ = GetShapeTestResult(
+        StartShapeTestRay(cam.x, cam.y, cam.z, dst.x, dst.y, dst.z, -1, PlayerPedId(), 0)
+    )
+    return hit == 1, pos
+end
+
 RegisterNUICallback('startPedPlacement', function(data, cb)
     cb({})
     SetNuiFocus(false, false)
@@ -82,55 +99,45 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
     local locName   = data.name
     local modelHash = joaat('s_m_m_doctor_01')
     RequestModel(modelHash)
-    while not HasModelLoaded(modelHash) do Wait(10) end
+    while not HasModelLoaded(modelHash) do Wait(0) end
 
-    local spawnPos = GetEntityCoords(PlayerPedId())
-    local ghostPed = CreatePed(4, modelHash, spawnPos.x, spawnPos.y, spawnPos.z, 0.0, false, true)
+    -- wait for a valid surface hit before spawning the ped
+    local hit, coords = false, nil
+    while not hit do
+        hit, coords = placementRay()
+        Wait(0)
+    end
+
+    local ghostPed = CreatePed(4, modelHash, coords.x, coords.y, coords.z, 0.0, false, true)
     SetEntityInvincible(ghostPed, true)
     SetBlockingOfNonTemporaryEvents(ghostPed, true)
     SetEntityAsMissionEntity(ghostPed, true, true)
-    SetEntityAlpha(ghostPed, 160, false)
+    SetEntityAlpha(ghostPed, 150, false)
     SetEntityCollision(ghostPed, false, false)
     FreezeEntityPosition(ghostPed, true)
 
-    local stage     = 'ped'
-    local lastStage = nil
-    local placed    = { ped = nil, steps = {} }
-
-    local function floorZ(x, y, fromZ)
-        local ray = StartShapeTestRay(x, y, fromZ + 3.0, x, y, fromZ - 3.0, 1 + 16, ghostPed, 0)
-        local _, hit, pos, normal = GetShapeTestResult(ray)
-        if hit and normal and normal.z > 0.4 then return pos.z end
-        return nil
-    end
-
-    local function getRay()
-        local cam = GetGameplayCamCoord()
-        local rot = GetGameplayCamRot(2)
-        local f   = math.rad(rot.z)
-        local p   = math.rad(rot.x)
-        local dir = vector3(-math.sin(f)*math.cos(p), math.cos(f)*math.cos(p), math.sin(p))
-        local dst = cam + dir * 60.0
-        local ray = StartShapeTestRay(cam.x, cam.y, cam.z, dst.x, dst.y, dst.z, 1 + 16, ghostPed, 0)
-        local _, hit, pos = GetShapeTestResult(ray)
-        if not hit then return false, nil end
-        local fz = floorZ(pos.x, pos.y, pos.z)
-        return true, vector3(pos.x, pos.y, fz or pos.z)
-    end
+    local pedHeading = 0.0
+    local stage      = 'ped'
+    local lastStage  = nil
+    local placed     = { ped = nil, steps = {} }
 
     CreateThread(function()
         while stage ~= 'done' and stage ~= 'cancel' do
             Wait(0)
 
-            DisableControlAction(0, 24,  true)
-            DisableControlAction(0, 25,  true)
-            DisableControlAction(0, 241, true)
-            DisableControlAction(0, 242, true)
+            -- disable controls we intercept
+            DisableControlAction(0, 24,  true)  -- LMB
+            DisableControlAction(0, 25,  true)  -- RMB
+            DisableControlAction(0, 174, true)  -- left arrow
+            DisableControlAction(0, 175, true)  -- right arrow
+            DisableControlAction(0, 241, true)  -- scroll up
+            DisableControlAction(0, 242, true)  -- scroll down
 
+            -- show textUI only when stage changes
             if stage ~= lastStage then
                 local style = { whiteSpace = 'pre-line' }
                 if stage == 'ped' then
-                    lib.showTextUI('[LMB] Place Ped\n[Scroll ↑↓] Rotate\n[RMB] Cancel', {
+                    lib.showTextUI('[LMB] Place Ped\n[Scroll / ← →] Rotate\n[RMB] Cancel', {
                         position = 'left-center', icon = 'user-doctor', style = style
                     })
                 elseif stage == 'step1' then
@@ -149,41 +156,42 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
                 lastStage = stage
             end
 
-            local hit, hitPos = getRay()
+            local rayHit, rayPos = placementRay()
 
             if stage == 'ped' then
-                if hit then
-                    SetEntityCoordsNoOffset(ghostPed, hitPos.x, hitPos.y, hitPos.z, false, false, false)
+                if rayHit then
+                    -- place ped directly at the surface the camera ray hits — no Z math needed
+                    SetEntityCoordsNoOffset(ghostPed, rayPos.x, rayPos.y, rayPos.z, false, false, false)
                 end
 
-                if IsDisabledControlJustPressed(0, 241) then
-                    SetEntityHeading(ghostPed, GetEntityHeading(ghostPed) + 10.0)
+                -- rotation: scroll wheel (one click = 5°) or held arrow keys (1°/frame)
+                if IsDisabledControlJustPressed(0, 241) or IsDisabledControlPressed(0, 174) then
+                    pedHeading = (pedHeading + 5.0) % 360.0
                 end
-                if IsDisabledControlJustPressed(0, 242) then
-                    SetEntityHeading(ghostPed, GetEntityHeading(ghostPed) - 10.0)
+                if IsDisabledControlJustPressed(0, 242) or IsDisabledControlPressed(0, 175) then
+                    pedHeading = (pedHeading - 5.0) % 360.0
                 end
+                SetEntityHeading(ghostPed, pedHeading)
 
-                if IsDisabledControlJustPressed(0, 24) then
+                if IsDisabledControlJustPressed(0, 24) then   -- LMB confirm
                     local pos = GetEntityCoords(ghostPed)
-                    placed.ped = { x = pos.x, y = pos.y, z = pos.z, w = GetEntityHeading(ghostPed) }
+                    placed.ped = { x = pos.x, y = pos.y, z = pos.z, w = pedHeading }
                     SetEntityAlpha(ghostPed, 50, false)
                     stage = 'step1'
-                end
-                if IsDisabledControlJustPressed(0, 25) then
+                elseif IsDisabledControlJustPressed(0, 25) then  -- RMB cancel
                     stage = 'cancel'
                 end
 
             elseif stage == 'step1' or stage == 'step2' or stage == 'step3' then
                 local n = tonumber(stage:sub(-1))
-                if hit then
-                    DrawMarker(1, hitPos.x, hitPos.y, hitPos.z, 0,0,0, 0,0,0,
+                if rayHit then
+                    DrawMarker(1, rayPos.x, rayPos.y, rayPos.z, 0,0,0, 0,0,0,
                         0.5, 0.5, 0.4, 255, 165, 0, 180, false, true, 2, nil, nil, false)
                 end
-                if IsDisabledControlJustPressed(0, 24) and hit then
-                    placed.steps[n] = { x = hitPos.x, y = hitPos.y, z = hitPos.z, w = 0.0 }
+                if IsDisabledControlJustPressed(0, 24) and rayHit then
+                    placed.steps[n] = { x = rayPos.x, y = rayPos.y, z = rayPos.z, w = 0.0 }
                     stage = n < 3 and ('step' .. (n + 1)) or 'done'
-                end
-                if IsDisabledControlJustPressed(0, 25) then
+                elseif IsDisabledControlJustPressed(0, 25) then
                     stage = 'done'
                 end
             end
