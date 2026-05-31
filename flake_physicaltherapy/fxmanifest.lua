@@ -12,7 +12,6 @@ shared_scripts {
 
 client_scripts {
     'client/cl_notifications.lua',
-    'client/gizmo.lua',
     'client/admin.lua',
     'client/client.lua',
 }
@@ -27,7 +26,6 @@ files {
     'web/index.html',
     'web/style.css',
     'web/script.js',
-    'client/dataview.lua',
 }
 
 ui_page 'web/index.html'
