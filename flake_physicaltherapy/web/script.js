@@ -223,7 +223,13 @@ function renderLocationEditor(name, data) {
         fieldNum('Cost', 'locCost', data.cost),
         toggleField('Show Blip', 'locBlip', !!data.showBlip)
     ]);
-    form.appendChild(mkGroup('Meta', 'fa-solid fa-sliders', metaRow));
+    const blipSelector = buildBlipSelector('blipSelectorWrap', data.blipId ?? 0);
+    blipSelector.style.display = data.showBlip ? '' : 'none';
+    const metaGroup = mkGroup('Meta', 'fa-solid fa-sliders', [metaRow, blipSelector]);
+    form.appendChild(metaGroup);
+    metaGroup.querySelector('#locBlip').addEventListener('change', function () {
+        blipSelector.style.display = this.checked ? '' : 'none';
+    });
 
     // Ped
     const ped = data.ped || { model: '', coords: { x: 0, y: 0, z: 0, w: 0 } };
@@ -314,6 +320,165 @@ function renderStepCard(number, step) {
     card.appendChild(header);
     card.appendChild(body);
     return card;
+}
+
+/* ---- Blip Data ---- */
+const BLIPS = [
+    {id:0,name:'radar_higher'},{id:1,name:'radar_police'},{id:2,name:'radar_police_2'},{id:3,name:'radar_mp_police'},
+    {id:4,name:'radar_mp_police_2'},{id:5,name:'radar_mp_police_3'},{id:6,name:'radar_mp_police_4'},{id:7,name:'radar_mp_police_5'},
+    {id:8,name:'radar_mp_police_6'},{id:9,name:'radar_mp_police_7'},{id:10,name:'radar_mp_police_8'},{id:11,name:'radar_mp_police_9'},
+    {id:12,name:'radar_mp_police_10'},{id:13,name:'radar_mp_police_11'},{id:14,name:'radar_mp_police_12'},{id:15,name:'radar_mp_police_13'},
+    {id:16,name:'radar_mp_police_14'},{id:17,name:'radar_mp_police_15'},{id:18,name:'radar_mp_police_16'},{id:19,name:'radar_mp_police_17'},
+    {id:20,name:'radar_mp_police_18'},{id:21,name:'radar_mp_police_19'},{id:22,name:'radar_mp_police_20'},{id:23,name:'radar_mp_police_21'},
+    {id:24,name:'radar_mp_police_22'},{id:25,name:'radar_mp_police_23'},{id:26,name:'radar_mp_police_24'},{id:27,name:'radar_mp_police_25'},
+    {id:28,name:'radar_mp_police_26'},{id:29,name:'radar_mp_police_27'},{id:30,name:'radar_mp_police_28'},{id:31,name:'radar_mp_police_29'},
+    {id:32,name:'radar_mp_police_30'},{id:33,name:'radar_mp_police_31'},{id:34,name:'radar_mp_police_32'},{id:35,name:'radar_mp_police_33'},
+    {id:36,name:'radar_mp_police_34'},{id:37,name:'radar_mp_police_35'},{id:38,name:'radar_mp_police_36'},{id:39,name:'radar_mp_police_37'},
+    {id:40,name:'radar_hospital'},{id:41,name:'radar_airport'},{id:42,name:'radar_bar'},{id:43,name:'radar_base_camp'},
+    {id:44,name:'radar_basketball'},{id:45,name:'radar_bikers'},{id:46,name:'radar_bowling'},{id:47,name:'radar_boxing'},
+    {id:48,name:'radar_car_mod'},{id:49,name:'radar_cash_register'},{id:50,name:'radar_cinema'},{id:51,name:'radar_circle_red'},
+    {id:52,name:'radar_clothes'},{id:53,name:'radar_crash'},{id:54,name:'radar_darts'},{id:55,name:'radar_default'},
+    {id:56,name:'radar_drugs'},{id:57,name:'radar_ex_girlfriend'},{id:58,name:'radar_friend'},{id:59,name:'radar_golf'},
+    {id:60,name:'radar_gun_shop'},{id:61,name:'radar_helicopter'},{id:62,name:'radar_hooker'},{id:63,name:'radar_hotel'},
+    {id:64,name:'radar_information'},{id:65,name:'radar_jewels'},{id:66,name:'radar_marina'},{id:67,name:'radar_mc_business'},
+    {id:68,name:'radar_north'},{id:69,name:'radar_package'},{id:70,name:'radar_parking'},{id:71,name:'radar_pay_and_spray'},
+    {id:72,name:'radar_petrol_station'},{id:73,name:'radar_phone'},{id:74,name:'radar_police_car'},{id:75,name:'radar_bar_2'},
+    {id:76,name:'radar_race_car'},{id:77,name:'radar_race_flag'},{id:78,name:'radar_random_character'},{id:79,name:'radar_random_female'},
+    {id:80,name:'radar_random_male'},{id:81,name:'radar_reporter'},{id:82,name:'radar_rob'},{id:83,name:'radar_safe_house'},
+    {id:84,name:'radar_shooting_range'},{id:85,name:'radar_skull'},{id:86,name:'radar_star'},{id:87,name:'radar_strip_club'},
+    {id:88,name:'radar_tattoo'},{id:89,name:'radar_tennis'},{id:90,name:'radar_toilet'},{id:91,name:'radar_triathlon'},
+    {id:92,name:'radar_unknown'},{id:93,name:'radar_wanted_radius'},{id:94,name:'radar_waypoint'},{id:95,name:'radar_yoga'},
+    {id:96,name:'radar_police_station'},{id:97,name:'radar_fire_station'},{id:98,name:'radar_bike'},{id:99,name:'radar_bicycle'},
+    {id:100,name:'radar_boat'},{id:101,name:'radar_cab'},{id:102,name:'radar_car'},{id:103,name:'radar_helicopter_2'},
+    {id:104,name:'radar_plane'},{id:105,name:'radar_quad'},{id:106,name:'radar_tank'},{id:107,name:'radar_truck'},
+    {id:108,name:'radar_van'},{id:109,name:'radar_bike_2'},{id:110,name:'radar_bicycle_2'},{id:111,name:'radar_boat_2'},
+    {id:112,name:'radar_cab_2'},{id:113,name:'radar_car_2'},{id:114,name:'radar_helicopter_3'},{id:115,name:'radar_plane_2'},
+    {id:116,name:'radar_quad_2'},{id:117,name:'radar_tank_2'},{id:118,name:'radar_truck_2'},{id:119,name:'radar_van_2'},
+    {id:120,name:'radar_character_michael'},{id:121,name:'radar_character_franklin'},{id:122,name:'radar_character_trevor'},{id:123,name:'radar_character_mp'},
+    {id:124,name:'radar_gtao_fm_events_apex'},{id:125,name:'radar_creator'},{id:126,name:'radar_creator_direction'},{id:127,name:'radar_abigail'},
+    {id:128,name:'radar_rampage'},{id:129,name:'radar_hunt_the_beast'},{id:130,name:'radar_quarry'},{id:131,name:'radar_parachute_jump'},
+    {id:132,name:'radar_swimming'},{id:133,name:'radar_number_1'},{id:134,name:'radar_number_2'},{id:135,name:'radar_number_3'},
+    {id:136,name:'radar_number_4'},{id:137,name:'radar_number_5'},{id:138,name:'radar_number_6'},{id:139,name:'radar_number_7'},
+    {id:140,name:'radar_number_8'},{id:141,name:'radar_number_9'},{id:142,name:'radar_number_10'},{id:143,name:'radar_number_11'},
+    {id:144,name:'radar_number_12'},{id:145,name:'radar_number_13'},{id:146,name:'radar_number_14'},{id:147,name:'radar_number_15'},
+    {id:148,name:'radar_number_16'},{id:149,name:'radar_number_17'},{id:150,name:'radar_number_18'},{id:151,name:'radar_number_19'},
+    {id:152,name:'radar_number_20'},{id:153,name:'radar_number_21'},{id:154,name:'radar_number_22'},{id:155,name:'radar_number_23'},
+    {id:156,name:'radar_number_24'},{id:157,name:'radar_number_25'},{id:158,name:'radar_number_26'},{id:159,name:'radar_number_27'},
+    {id:160,name:'radar_number_28'},{id:161,name:'radar_number_29'},{id:162,name:'radar_number_30'},{id:163,name:'radar_number_31'},
+    {id:164,name:'radar_number_32'},{id:165,name:'radar_number_33'},{id:166,name:'radar_number_34'},{id:167,name:'radar_number_35'},
+    {id:168,name:'radar_number_36'},{id:169,name:'radar_number_37'},{id:170,name:'radar_number_38'},{id:171,name:'radar_number_39'},
+    {id:172,name:'radar_number_40'},{id:173,name:'radar_number_41'},{id:174,name:'radar_number_42'},{id:175,name:'radar_number_43'},
+    {id:176,name:'radar_number_44'},{id:177,name:'radar_number_45'},{id:178,name:'radar_number_46'},{id:179,name:'radar_number_47'},
+    {id:180,name:'radar_number_48'},{id:181,name:'radar_number_49'},{id:182,name:'radar_number_50'},{id:183,name:'radar_number_51'},
+    {id:184,name:'radar_number_52'},{id:185,name:'radar_number_53'},{id:186,name:'radar_number_54'},{id:187,name:'radar_number_55'},
+    {id:188,name:'radar_number_56'},{id:189,name:'radar_number_57'},{id:190,name:'radar_number_58'},{id:191,name:'radar_number_59'},
+    {id:192,name:'radar_number_60'},{id:193,name:'radar_mp_crew'},{id:194,name:'radar_gtao_deathmatch'},{id:195,name:'radar_gtao_survival'},
+    {id:196,name:'radar_gtao_race_bike'},{id:197,name:'radar_gtao_race_boat'},{id:198,name:'radar_gtao_race_car'},{id:199,name:'radar_gtao_race_helicopter'},
+    {id:200,name:'radar_gtao_race_parachute'},{id:201,name:'radar_gtao_race_plane'},{id:202,name:'radar_gtao_mission'},{id:203,name:'radar_gtao_freeroam'},
+    {id:204,name:'radar_gtao_captured_bag'},{id:205,name:'radar_gtao_bag_dropped'},{id:206,name:'radar_gtao_delivery'},{id:207,name:'radar_gtao_package_steal'},
+    {id:208,name:'radar_gtao_arm_wrestling'},{id:209,name:'radar_gtao_darts'},{id:210,name:'radar_gtao_shooting_range'},{id:211,name:'radar_gtao_tennis'},
+    {id:212,name:'radar_gtao_triathlon'},{id:213,name:'radar_property_for_sale'},{id:214,name:'radar_property_taken'},{id:215,name:'radar_garage_for_sale'},
+    {id:216,name:'radar_garage_taken'},{id:217,name:'radar_helipad_for_sale'},{id:218,name:'radar_helipad_taken'},{id:219,name:'radar_dock_for_sale'},
+    {id:220,name:'radar_dock_taken'},{id:221,name:'radar_hangar_for_sale'},{id:222,name:'radar_hangar_taken'},{id:223,name:'radar_police_helicopter'},
+    {id:224,name:'radar_boost'},{id:225,name:'radar_devin_weston'},{id:226,name:'radar_simeon'},{id:227,name:'radar_trevor'},
+    {id:228,name:'radar_lamar'},{id:229,name:'radar_lester'},{id:230,name:'radar_ron'},{id:231,name:'radar_wade'},
+    {id:232,name:'radar_martin_madrazo'},{id:233,name:'radar_solomon_richards'},{id:234,name:'radar_hao'},{id:235,name:'radar_chop'},
+    {id:236,name:'radar_family'},{id:237,name:'radar_gang_1'},{id:238,name:'radar_gang_2'},{id:239,name:'radar_gang_3'},
+    {id:240,name:'radar_gang_4'},{id:241,name:'radar_gang_5'},{id:242,name:'radar_gang_6'},{id:243,name:'radar_gang_7'},
+    {id:244,name:'radar_gang_8'},{id:245,name:'radar_gang_9'},{id:246,name:'radar_gang_10'},{id:247,name:'radar_bikers_2'},
+    {id:248,name:'radar_blimp'},{id:249,name:'radar_submarine'},{id:250,name:'radar_sub_jet'},{id:251,name:'radar_parachute'},
+    {id:252,name:'radar_jetpack'},{id:253,name:'radar_race_start_line'},{id:254,name:'radar_race_car_2'},{id:255,name:'radar_race_bike_2'},
+    {id:256,name:'radar_race_boat_2'},{id:257,name:'radar_race_helicopter_2'},{id:258,name:'radar_race_plane_2'},{id:259,name:'radar_race_parachute_2'},
+    {id:260,name:'radar_amphibious_assault'},{id:261,name:'radar_bank'},{id:262,name:'radar_car_dealership'},{id:263,name:'radar_cinema_2'},
+    {id:264,name:'radar_clothes_2'},{id:265,name:'radar_hair_salon'},{id:266,name:'radar_liquor_store'},{id:267,name:'radar_los_santos_customs'},
+    {id:268,name:'radar_massage'},{id:269,name:'radar_nightclub'},{id:270,name:'radar_police_car_2'},{id:271,name:'radar_post_office'},
+    {id:272,name:'radar_race_jetski'},{id:273,name:'radar_random_character_2'},{id:274,name:'radar_shooting_range_2'},{id:275,name:'radar_stadium'},
+    {id:276,name:'radar_store'},{id:277,name:'radar_tattoo_2'},{id:278,name:'radar_yoga_2'},{id:279,name:'radar_gtao_property'},
+    {id:280,name:'radar_gtao_garage'},{id:281,name:'radar_gtao_golf'},{id:282,name:'radar_gtao_basketball'},{id:283,name:'radar_gtao_tennis_2'},
+    {id:284,name:'radar_gtao_swimming_2'},{id:285,name:'radar_gtao_bike_race'},{id:286,name:'radar_gtao_boat_race'},{id:287,name:'radar_gtao_car_race'},
+    {id:288,name:'radar_gtao_helicopter_race'},{id:289,name:'radar_gtao_plane_race'},{id:290,name:'radar_gtao_parachute_race'},{id:291,name:'radar_gtao_mission_2'},
+    {id:292,name:'radar_gtao_contact_mission'},{id:293,name:'radar_gtao_simeon_mission'},{id:294,name:'radar_gtao_lester_mission'},{id:295,name:'radar_gtao_ron_mission'},
+    {id:296,name:'radar_gtao_trevor_mission'},{id:297,name:'radar_gtao_martin_mission'},{id:298,name:'radar_gtao_gerald_mission'},{id:299,name:'radar_gtao_lamar_mission'},
+    {id:300,name:'radar_gtao_job_available'},{id:301,name:'radar_gtao_am_vehicle_spawn'},{id:302,name:'radar_gtao_am_vehicle_spawn_2'},{id:303,name:'radar_gtao_capture_the_flag'},
+    {id:304,name:'radar_gtao_gta_races'},{id:305,name:'radar_gtao_jb_700_weapon'},{id:306,name:'radar_gtao_jb_700_weapon_2'},{id:307,name:'radar_gtao_last_team_standing'},
+    {id:308,name:'radar_gtao_mission_3'},{id:309,name:'radar_gtao_versus_mission'},{id:310,name:'radar_gtao_rap_sheet'},{id:311,name:'radar_gtao_safe_house'},
+    {id:312,name:'radar_gtao_yacht'},{id:313,name:'radar_gtao_gang_attack'},{id:314,name:'radar_gtao_gang_attack_2'},{id:315,name:'radar_gtao_gang_attack_3'},
+    {id:316,name:'radar_gtao_gang_attack_4'},{id:317,name:'radar_gtao_gang_attack_5'},{id:318,name:'radar_gtao_tuner_race'},{id:319,name:'radar_gtao_stunt_race'},
+    {id:320,name:'radar_gtao_rc_time_trial'},{id:321,name:'radar_gtao_time_trial'},{id:322,name:'radar_gtao_time_trial_2'},{id:323,name:'radar_gtao_time_trial_3'},
+    {id:324,name:'radar_gtao_adversary_mode'},{id:325,name:'radar_gtao_special_race'},{id:326,name:'radar_gtao_king_of_the_castle'},{id:327,name:'radar_gunrunning_supply'},
+    {id:328,name:'radar_gunrunning_sell'},{id:329,name:'radar_gunrunning_research'},{id:330,name:'radar_smuggler'},{id:331,name:'radar_smuggler_2'},
+    {id:332,name:'radar_smuggler_3'},{id:333,name:'radar_import_export'},{id:334,name:'radar_import_export_2'},{id:335,name:'radar_bike_shop'},
+    {id:336,name:'radar_mc_headquarters'},{id:337,name:'radar_mc_sell'},{id:338,name:'radar_mc_supply'},{id:339,name:'radar_mc_clubhouse'},
+    {id:340,name:'radar_mc_weed'},{id:341,name:'radar_mc_meth'},{id:342,name:'radar_mc_cocaine'},{id:343,name:'radar_mc_forgery'},
+    {id:344,name:'radar_mc_counterfeit_cash'},{id:345,name:'radar_office'},{id:346,name:'radar_office_2'},{id:347,name:'radar_warehouse'},
+    {id:348,name:'radar_warehouse_2'},{id:349,name:'radar_vehicle_warehouse'},{id:350,name:'radar_vehicle_warehouse_2'},{id:351,name:'radar_gunrunning'},
+    {id:352,name:'radar_bunker'},{id:353,name:'radar_bunker_2'},{id:354,name:'radar_facility'},{id:355,name:'radar_hangar'},
+    {id:356,name:'radar_nightclub_2'},{id:357,name:'radar_casino'},{id:358,name:'radar_arena'},{id:359,name:'radar_arcade'},
+    {id:360,name:'radar_auto_shop'},{id:361,name:'radar_car_meet'},{id:362,name:'radar_agency'},{id:363,name:'radar_freakshop'},
+    {id:364,name:'radar_salvage_yard'},{id:365,name:'radar_chop_shop'},{id:366,name:'radar_bail_office'},{id:367,name:'radar_car_show'},
+    {id:368,name:'radar_ammo'},{id:369,name:'radar_ammo_2'},{id:370,name:'radar_armored_truck'},{id:371,name:'radar_armored_truck_2'},
+    {id:372,name:'radar_airstrike'},{id:373,name:'radar_coke'},{id:374,name:'radar_fib'},{id:375,name:'radar_fib_2'},
+    {id:376,name:'radar_fib_3'},{id:377,name:'radar_fib_4'},{id:378,name:'radar_ped'},{id:379,name:'radar_ped_2'},
+    {id:380,name:'radar_peyote'},{id:381,name:'radar_satellite'},{id:382,name:'radar_suitcase'},{id:383,name:'radar_suitcase_2'},
+    {id:384,name:'radar_snitch'},{id:385,name:'radar_snitch_red'},{id:386,name:'radar_snitch_yellow'},{id:387,name:'radar_sport'},
+    {id:388,name:'radar_sport_2'},{id:389,name:'radar_mission_start'},{id:390,name:'radar_race_finish'},{id:391,name:'radar_finish_line'},
+    {id:392,name:'radar_respawn_point'},{id:393,name:'radar_gtao_deathmatch_2'},{id:394,name:'radar_gtao_versus_deathmatch'},{id:395,name:'radar_gtao_survivals'},
+    {id:396,name:'radar_gtao_contact_mission_2'},{id:397,name:'radar_gtao_sports'},{id:398,name:'radar_gtao_sports_2'},{id:399,name:'radar_gtao_sports_3'},
+    {id:400,name:'radar_gtao_fm_events'},{id:401,name:'radar_freemode_event'},{id:402,name:'radar_freemode_event_2'},{id:403,name:'radar_freemode_event_3'},
+    {id:404,name:'radar_collection'},{id:405,name:'radar_collection_2'},{id:406,name:'radar_collection_3'},{id:407,name:'radar_collection_4'},
+    {id:408,name:'radar_collection_5'},{id:409,name:'radar_collection_6'},{id:410,name:'radar_collection_7'},{id:411,name:'radar_collection_8'},
+    {id:412,name:'radar_collection_9'},{id:413,name:'radar_collection_10'},{id:414,name:'radar_collection_11'},{id:415,name:'radar_collection_12'},
+    {id:416,name:'radar_collection_13'},{id:417,name:'radar_collection_14'},{id:418,name:'radar_collection_15'},{id:419,name:'radar_collection_16'},
+    {id:420,name:'radar_sale'},{id:421,name:'radar_sale_2'},{id:422,name:'radar_sale_3'},{id:423,name:'radar_sale_4'},
+    {id:424,name:'radar_sale_5'},{id:425,name:'radar_sale_6'},{id:426,name:'radar_sale_7'},{id:427,name:'radar_sale_8'},
+    {id:428,name:'radar_sale_9'},{id:429,name:'radar_sale_10'},{id:430,name:'radar_sale_11'},{id:431,name:'radar_sale_12'},
+    {id:432,name:'radar_sale_13'},{id:433,name:'radar_sale_14'},{id:434,name:'radar_sale_15'},{id:435,name:'radar_sale_16'}
+];
+
+function buildBlipSelector(containerId, currentBlipId) {
+    const wrap = document.createElement('div');
+    wrap.className = 'blip-selector-wrap';
+    wrap.id = containerId;
+
+    const search = document.createElement('input');
+    search.type = 'text';
+    search.placeholder = 'Search blips...';
+    search.className = 'blip-search';
+    wrap.appendChild(search);
+
+    const grid = document.createElement('div');
+    grid.className = 'blip-grid';
+    wrap.appendChild(grid);
+
+    const hidden = document.createElement('input');
+    hidden.type = 'hidden';
+    hidden.id = 'locBlipId';
+    hidden.value = currentBlipId ?? 0;
+    wrap.appendChild(hidden);
+
+    function renderGrid(filter) {
+        grid.innerHTML = '';
+        const filtered = filter
+            ? BLIPS.filter(b => b.name.includes(filter.toLowerCase()) || String(b.id) === filter)
+            : BLIPS;
+        filtered.forEach(b => {
+            const item = document.createElement('div');
+            item.className = 'blip-item' + (b.id === parseInt(hidden.value) ? ' selected' : '');
+            item.title = `${b.id} - ${b.name}`;
+            item.innerHTML = `<img src="https://docs.fivem.net/blips/${b.name}.png" alt="${escapeHtml(b.name)}" onerror="this.style.opacity='0.2'">
+                <span>${escapeHtml(b.name.replace('radar_',''))}</span>`;
+            item.addEventListener('click', () => {
+                hidden.value = b.id;
+                grid.querySelectorAll('.blip-item').forEach(el => el.classList.remove('selected'));
+                item.classList.add('selected');
+            });
+            grid.appendChild(item);
+        });
+    }
+
+    renderGrid('');
+    search.addEventListener('input', () => renderGrid(search.value.trim()));
+    return wrap;
 }
 
 /* ---- Animation Data ---- */
@@ -516,6 +681,7 @@ function readLocationData() {
     loc.coords = { x: floatVal('locCX'), y: floatVal('locCY'), z: floatVal('locCZ'), w: floatVal('locCW') };
     loc.cost = floatVal('locCost');
     loc.showBlip = !!document.getElementById('locBlip')?.checked;
+    loc.blipId = parseInt(document.getElementById('locBlipId')?.value) || 0;
     loc.ped = {
         model: document.getElementById('pedModel')?.value || 's_m_m_doctor_01',
         coords: { x: floatVal('pedCX'), y: floatVal('pedCY'), z: floatVal('pedCZ'), w: floatVal('pedCW') }
