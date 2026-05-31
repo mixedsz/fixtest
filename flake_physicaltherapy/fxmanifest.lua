@@ -36,4 +36,7 @@ escrow_ignore {
     'config/*.lua',
 }
 
-dependency '/assetpacks'
+dependencies {
+    '/assetpacks',
+    'object_gizmo',
+}
