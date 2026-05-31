@@ -3,7 +3,6 @@
 html, body {
     width: 100%; height: 100%;
     overflow: hidden;
-    background: rgba(0,0,0,0) !important;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     user-select: none;
 }
@@ -27,7 +26,6 @@ html, body {
     will-change: transform;
 }
 
-body { background: rgba(0,0,0,0) !important; }
 
 .mac-window.minimized {
     width: 260px !important; height: 40px !important;
