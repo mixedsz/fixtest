@@ -378,6 +378,51 @@ html, body {
 .save-btn:hover { background: #1a90ff; }
 .save-btn:active { transform: scale(0.97); }
 
+/* ===== MODAL ===== */
+.modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 999;
+    opacity: 0; transition: opacity 0.15s;
+}
+.modal-overlay.visible { opacity: 1; }
+.modal-box {
+    background: #242426; border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px; padding: 20px 22px;
+    min-width: 280px;
+    transform: translateY(-6px); transition: transform 0.15s;
+}
+.modal-overlay.visible .modal-box { transform: translateY(0); }
+.modal-title { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.85); margin-bottom: 12px; }
+.modal-input {
+    width: 100%; background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 7px;
+    padding: 9px 11px; color: rgba(255,255,255,0.9); font-size: 13px;
+    outline: none; margin-bottom: 14px;
+}
+.modal-input:focus { border-color: rgba(10,132,255,0.5); }
+.modal-btns { display: flex; gap: 8px; justify-content: flex-end; }
+.modal-btn {
+    padding: 7px 16px; border-radius: 7px; font-size: 12.5px; font-weight: 600;
+    cursor: pointer; border: none; outline: none; transition: background 0.12s;
+}
+.modal-btn.cancel { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); }
+.modal-btn.cancel:hover { background: rgba(255,255,255,0.13); }
+.modal-btn.confirm { background: #0a84ff; color: #fff; }
+.modal-btn.confirm:hover { background: #1a90ff; }
+
+/* ===== TOAST ===== */
+.ui-toast {
+    position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%) translateY(8px);
+    background: rgba(40,200,64,0.18); border: 1px solid rgba(40,200,64,0.35);
+    color: #28c840; border-radius: 8px; padding: 9px 18px; font-size: 12.5px; font-weight: 600;
+    z-index: 1000; opacity: 0; transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+}
+.ui-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+.ui-toast.error { background: rgba(255,95,87,0.18); border-color: rgba(255,95,87,0.35); color: #ff5f57; }
+
 /* ===== TOOLTIP ===== */
 [data-title] { position: relative; }
 [data-title]::after {

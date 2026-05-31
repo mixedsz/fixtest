@@ -199,39 +199,29 @@ function renderLocationList() {
 }
 
 document.getElementById('addLocationBtn').addEventListener('click', () => {
-    let name = prompt('Enter new location name:');
-    if (!name) return;
-    name = name.trim();
-    if (!name) return;
-    if (configData.TherapyLocations && configData.TherapyLocations[name]) {
-        alert('Location already exists');
-        return;
-    }
-    if (!configData.TherapyLocations) configData.TherapyLocations = {};
-    configData.TherapyLocations[name] = {
-        coords: { x: 0, y: 0, z: 0, w: 0 },
-        cost: 500,
-        showBlip: true,
-        ped: { model: 's_m_m_doctor_01', coords: { x: 0, y: 0, z: 0, w: 0 } },
-        steps: [
-            {
-                coords: { x: 0, y: 0, z: 0, w: 0 },
-                progress: { duration: 20000, label: 'Step 1', canCancel: false, disable: { move: true, combat: true }, anim: { dict: '', clip: '', flag: 7 } }
-            },
-            {
-                coords: { x: 0, y: 0, z: 0, w: 0 },
-                progress: { duration: 20000, label: 'Step 2', canCancel: false, disable: { move: true, combat: true }, anim: { dict: '', clip: '', flag: 7 } }
-            },
-            {
-                coords: { x: 0, y: 0, z: 0, w: 0 },
-                progress: { duration: 20000, label: 'Step 3', canCancel: false, disable: { move: true, combat: true }, anim: { dict: '', clip: '', flag: 7 } }
-            }
-        ]
-    };
-    selectedLocation = name;
-    renderLocationList();
-    renderLocationEditor(name, configData.TherapyLocations[name]);
-    selectTab('locations');
+    showNameModal('New Location Name', '', (name) => {
+        if (!name) return;
+        if (configData.TherapyLocations && configData.TherapyLocations[name]) {
+            showToast('Location already exists', 'error');
+            return;
+        }
+        if (!configData.TherapyLocations) configData.TherapyLocations = {};
+        configData.TherapyLocations[name] = {
+            coords: { x: 0, y: 0, z: 0, w: 0 },
+            cost: 500,
+            showBlip: true,
+            ped: { model: 's_m_m_doctor_01', coords: { x: 0, y: 0, z: 0, w: 0 } },
+            steps: [
+                { coords: { x: 0, y: 0, z: 0, w: 0 }, progress: { duration: 20000, label: 'Step 1', canCancel: false, disable: { move: true, combat: true }, anim: { dict: '', clip: '', flag: 7 } } },
+                { coords: { x: 0, y: 0, z: 0, w: 0 }, progress: { duration: 20000, label: 'Step 2', canCancel: false, disable: { move: true, combat: true }, anim: { dict: '', clip: '', flag: 7 } } },
+                { coords: { x: 0, y: 0, z: 0, w: 0 }, progress: { duration: 20000, label: 'Step 3', canCancel: false, disable: { move: true, combat: true }, anim: { dict: '', clip: '', flag: 7 } } }
+            ]
+        };
+        selectedLocation = name;
+        renderLocationList();
+        renderLocationEditor(name, configData.TherapyLocations[name]);
+        selectTab('locations');
+    });
 });
 
 /* ---- Location Editor ---- */
@@ -663,6 +653,68 @@ function readLocationData() {
 
 function floatVal(id) { const el = document.getElementById(id); return el ? parseFloat(el.value) || 0 : 0; }
 function intVal(id)   { const el = document.getElementById(id); return el ? parseInt(el.value) || 0 : 0; }
+
+/* ---- Custom modal (replaces prompt/alert — blocked in FiveM CEF) ---- */
+function showNameModal(title, defaultVal, onConfirm) {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+
+    const box = document.createElement('div');
+    box.className = 'modal-box';
+
+    const heading = document.createElement('p');
+    heading.className = 'modal-title';
+    heading.textContent = title;
+
+    const input = document.createElement('input');
+    input.className = 'modal-input';
+    input.type = 'text';
+    input.value = defaultVal || '';
+    input.placeholder = 'Enter name...';
+
+    const btns = document.createElement('div');
+    btns.className = 'modal-btns';
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'modal-btn cancel';
+    cancelBtn.textContent = 'Cancel';
+
+    const confirmBtn = document.createElement('button');
+    confirmBtn.className = 'modal-btn confirm';
+    confirmBtn.textContent = 'Create';
+
+    btns.appendChild(cancelBtn);
+    btns.appendChild(confirmBtn);
+    box.appendChild(heading);
+    box.appendChild(input);
+    box.appendChild(btns);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+
+    requestAnimationFrame(() => { overlay.classList.add('visible'); input.focus(); });
+
+    function close() { overlay.classList.remove('visible'); setTimeout(() => overlay.remove(), 150); }
+
+    cancelBtn.addEventListener('click', close);
+    confirmBtn.addEventListener('click', () => {
+        const val = input.value.trim();
+        close();
+        if (val) onConfirm(val);
+    });
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') confirmBtn.click();
+        if (e.key === 'Escape') close();
+    });
+}
+
+function showToast(msg, type) {
+    const t = document.createElement('div');
+    t.className = 'ui-toast' + (type === 'error' ? ' error' : '');
+    t.textContent = msg;
+    document.body.appendChild(t);
+    requestAnimationFrame(() => t.classList.add('visible'));
+    setTimeout(() => { t.classList.remove('visible'); setTimeout(() => t.remove(), 300); }, 2500);
+}
 
 /* ---- Save ---- */
 document.getElementById('saveBtn').addEventListener('click', async () => {
