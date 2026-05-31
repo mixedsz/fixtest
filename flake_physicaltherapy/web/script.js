@@ -208,11 +208,6 @@ function renderLocationEditor(name, data) {
     ]);
     form.appendChild(mkGroup('Basic Info', 'fa-solid fa-circle-info', nameRow));
 
-    // Coords
-    const coords = data.coords || { x: 0, y: 0, z: 0, w: 0 };
-    const locCoordField = mkCoordGroup('Coords  (x, y, z, heading)', 'locCoords', coords.x, coords.y, coords.z, coords.w);
-    form.appendChild(mkGroup('Location Coords', 'fa-solid fa-location-crosshairs', [mkUsePosBtn('locCoords'), locCoordField]));
-
     // Cost / Blip
     const metaRow = mkRow([
         fieldNum('Cost', 'locCost', data.cost),
@@ -227,7 +222,7 @@ function renderLocationEditor(name, data) {
     ]);
     const pedCoords = ped.coords || { x: 0, y: 0, z: 0, w: 0 };
     const pedCoordField = mkCoordGroup('Coords  (x, y, z, heading)', 'pedCoords', pedCoords.x, pedCoords.y, pedCoords.z, pedCoords.w);
-    form.appendChild(mkGroup('Ped', 'fa-solid fa-user-doctor', [pedRow1, mkUsePosBtn('pedCoords'), pedCoordField]));
+    form.appendChild(mkGroup('Ped & Location (Blip)', 'fa-solid fa-user-doctor', [pedRow1, mkUsePosBtn('pedCoords'), pedCoordField]));
 
     // Steps
     const stepsWrap = document.createElement('div');
@@ -515,7 +510,8 @@ function readLocationData() {
     if (!loc) return;
 
     const newName = document.getElementById('locName')?.value.trim() || selectedLocation;
-    loc.coords = parseCoordField('locCoords');
+    const pedC = parseCoordField('pedCoords');
+    loc.coords = { ...pedC };
     loc.cost = floatVal('locCost');
     loc.showBlip = !!document.getElementById('locBlip')?.checked;
     loc.ped = {
