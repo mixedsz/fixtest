@@ -90,11 +90,23 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
     SetBlockingOfNonTemporaryEvents(ghostPed, true)
     SetEntityAsMissionEntity(ghostPed, true, true)
     SetEntityAlpha(ghostPed, 160, false)
+    SetEntityCollision(ghostPed, false, false)  -- no collision: walls cannot spin/push the ghost ped
+    FreezeEntityPosition(ghostPed, true)        -- physics can't move it; we set position manually
 
     -- stage: 'ped' -> 'step1' -> 'step2' -> 'step3' -> 'done' | 'cancel'
     local stage     = 'ped'
     local lastStage = nil
     local placed    = { ped = nil, steps = {} }
+
+    local function findFloorZ(x, y, fromZ)
+        -- Shoot a wide downward ray (8 units) to find any horizontal surface below the cursor
+        local ray = StartShapeTestRay(x, y, fromZ + 4.0, x, y, fromZ - 4.0, 1, -1, 0)
+        local _, hit, pos, normal = GetShapeTestResult(ray)
+        if hit and normal and normal.z > 0.4 then
+            return pos.z
+        end
+        return nil
+    end
 
     local function getRay()
         local cam = GetGameplayCamCoord()
@@ -103,46 +115,26 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
         local p   = math.rad(rot.x)
         local dir = vector3(-math.sin(f) * math.cos(p), math.cos(f) * math.cos(p), math.sin(p))
         local dst = cam + dir * 60.0
-        local ray = StartShapeTestRay(cam.x, cam.y, cam.z, dst.x, dst.y, dst.z, 1 + 16, ghostPed, 0)
+        -- Flag 1 = world geometry only (no entities); ignore all entities so walls of objects are excluded
+        local ray = StartShapeTestRay(cam.x, cam.y, cam.z, dst.x, dst.y, dst.z, 1, -1, 0)
         local _, hit, pos = GetShapeTestResult(ray)
         if not hit then return false, nil end
-
-        -- Whatever the ray hit (floor OR wall), shoot a downward ray from that X,Y
-        -- to find the actual floor beneath the cursor — ped follows along any surface
-        local above = vector3(pos.x, pos.y, pos.z + 2.0)
-        local below = vector3(pos.x, pos.y, pos.z - 4.0)
-        local dray  = StartShapeTestRay(above.x, above.y, above.z, below.x, below.y, below.z, 1 + 16, ghostPed, 0)
-        local _, dhit, dpos, dnormal = GetShapeTestResult(dray)
-        if dhit and dnormal and dnormal.z > 0.5 then
-            return true, dpos
+        -- Use X,Y from whatever the camera ray hit, then find the floor Z at that column
+        local floorZ = findFloorZ(pos.x, pos.y, pos.z)
+        if floorZ then
+            return true, vector3(pos.x, pos.y, floorZ)
         end
-        -- Fallback: use hit pos directly if downward ray found nothing
         return true, pos
-    end
-
-    local function rayFloorZ(x, y, fromZ)
-        -- Shoot downward from fromZ+2 to fromZ-3, return floor Z if a horizontal surface is found
-        local ray = StartShapeTestRay(x, y, fromZ + 2.0, x, y, fromZ - 3.0, 1 + 16, ghostPed, 0)
-        local _, hit, pos, normal = GetShapeTestResult(ray)
-        if hit and normal and normal.z > 0.5 then
-            return pos.z
-        end
-        return nil
-    end
-
-    local function placeOnFloor(x, y, z)
-        local floorZ = rayFloorZ(x, y, z) or z
-        SetEntityCoordsNoOffset(ghostPed, x, y, floorZ, false, false, false)
     end
 
     local function forceGroundSnap()
         local pos = GetEntityCoords(ghostPed)
-        local floorZ = rayFloorZ(pos.x, pos.y, pos.z)
+        local floorZ = findFloorZ(pos.x, pos.y, pos.z)
         if not floorZ then
-            -- Extend search range upward for steep stairs / ramps
-            local ray = StartShapeTestRay(pos.x, pos.y, pos.z + 5.0, pos.x, pos.y, pos.z - 5.0, 1 + 16, ghostPed, 0)
+            -- Wider search in case ped is floating high or in a depression
+            local ray = StartShapeTestRay(pos.x, pos.y, pos.z + 6.0, pos.x, pos.y, pos.z - 6.0, 1, -1, 0)
             local _, hit, hpos, hnormal = GetShapeTestResult(ray)
-            if hit and hnormal and hnormal.z > 0.5 then floorZ = hpos.z end
+            if hit and hnormal and hnormal.z > 0.4 then floorZ = hpos.z end
         end
         if floorZ then
             SetEntityCoordsNoOffset(ghostPed, pos.x, pos.y, floorZ, false, false, false)
@@ -187,7 +179,7 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
 
             if stage == 'ped' then
                 if hit then
-                    placeOnFloor(hitPos.x, hitPos.y, hitPos.z)
+                    SetEntityCoordsNoOffset(ghostPed, hitPos.x, hitPos.y, hitPos.z, false, false, false)
                 end
 
                 -- Scroll wheel rotation — 10 deg per tick
