@@ -96,7 +96,7 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
         SetEntityAsMissionEntity(ghostPed, true, true)
         SetEntityCollision(ghostPed, false, false)
 
-        local pedResult = exports.object_gizmo:useGizmo(ghostPed)
+        local pedResult = PT_UseGizmo(ghostPed)
         local pedPos    = pedResult.position
         local pedCoords = { x = pedPos.x, y = pedPos.y, z = pedPos.z, w = GetEntityHeading(ghostPed) }
 
@@ -115,7 +115,7 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
             SetEntityAsMissionEntity(cone, true, true)
             SetEntityCollision(cone, false, false)
 
-            local stepResult = exports.object_gizmo:useGizmo(cone)
+            local stepResult = PT_UseGizmo(cone)
             local sp = stepResult.position
             steps[i]  = { x = sp.x, y = sp.y, z = sp.z, w = 0.0 }
 
