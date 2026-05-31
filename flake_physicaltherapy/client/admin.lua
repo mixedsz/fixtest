@@ -120,28 +120,32 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
         return true, pos
     end
 
+    local function rayFloorZ(x, y, fromZ)
+        -- Shoot downward from fromZ+2 to fromZ-3, return floor Z if a horizontal surface is found
+        local ray = StartShapeTestRay(x, y, fromZ + 2.0, x, y, fromZ - 3.0, 1 + 16, ghostPed, 0)
+        local _, hit, pos, normal = GetShapeTestResult(ray)
+        if hit and normal and normal.z > 0.5 then
+            return pos.z
+        end
+        return nil
+    end
+
     local function placeOnFloor(x, y, z)
-        SetEntityCoordsNoOffset(ghostPed, x, y, z, false, false, false)
-        PlaceObjectOnGroundProperly(ghostPed)
+        local floorZ = rayFloorZ(x, y, z) or z
+        SetEntityCoordsNoOffset(ghostPed, x, y, floorZ, false, false, false)
     end
 
     local function forceGroundSnap()
         local pos = GetEntityCoords(ghostPed)
-        -- Try engine ground first (works outdoors)
-        local found, gz = GetGroundZFor_3dCoord(pos.x, pos.y, pos.z + 3.0, false)
-        if found then
-            SetEntityCoordsNoOffset(ghostPed, pos.x, pos.y, gz, false, false, false)
-            PlaceObjectOnGroundProperly(ghostPed)
-        else
-            -- Indoors: shoot a ray straight down to find the floor
-            local top = vector3(pos.x, pos.y, pos.z + 3.0)
-            local bot = vector3(pos.x, pos.y, pos.z - 5.0)
-            local ray = StartShapeTestRay(top.x, top.y, top.z, bot.x, bot.y, bot.z, 1 + 16, ghostPed, 0)
-            local _, hit, hitPos, normal = GetShapeTestResult(ray)
-            if hit and normal and normal.z > 0.5 then
-                SetEntityCoordsNoOffset(ghostPed, pos.x, pos.y, hitPos.z, false, false, false)
-                PlaceObjectOnGroundProperly(ghostPed)
-            end
+        local floorZ = rayFloorZ(pos.x, pos.y, pos.z)
+        if not floorZ then
+            -- Extend search range upward for steep stairs / ramps
+            local ray = StartShapeTestRay(pos.x, pos.y, pos.z + 5.0, pos.x, pos.y, pos.z - 5.0, 1 + 16, ghostPed, 0)
+            local _, hit, hpos, hnormal = GetShapeTestResult(ray)
+            if hit and hnormal and hnormal.z > 0.5 then floorZ = hpos.z end
+        end
+        if floorZ then
+            SetEntityCoordsNoOffset(ghostPed, pos.x, pos.y, floorZ, false, false, false)
         end
     end
 
@@ -158,21 +162,22 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
 
             -- Update ox_lib textui only on stage change
             if stage ~= lastStage then
+                local style = { whiteSpace = 'pre-line' }
                 if stage == 'ped' then
-                    lib.showTextUI('**Place Therapy Ped**\n**[LMB]** Confirm Position\n**[Scroll ↑↓]** Rotate\n**[L.Alt]** Snap to Ground\n**[RMB]** Cancel', {
-                        position = 'left-center', icon = 'user-doctor'
+                    lib.showTextUI('Place Therapy Ped\n[LMB]  Confirm Position\n[Scroll ↑↓]  Rotate\n[L.Alt]  Snap to Ground\n[RMB]  Cancel', {
+                        position = 'left-center', icon = 'user-doctor', style = style
                     })
                 elseif stage == 'step1' then
-                    lib.showTextUI('**Step 1 of 3**\n**[LMB]** Set Position\n**[RMB]** Skip All Steps', {
-                        position = 'left-center', icon = 'location-dot'
+                    lib.showTextUI('Step 1 of 3\n[LMB]  Set Position\n[RMB]  Skip All Steps', {
+                        position = 'left-center', icon = 'location-dot', style = style
                     })
                 elseif stage == 'step2' then
-                    lib.showTextUI('**Step 2 of 3**\n**[LMB]** Set Position\n**[RMB]** Skip Remaining', {
-                        position = 'left-center', icon = 'location-dot'
+                    lib.showTextUI('Step 2 of 3\n[LMB]  Set Position\n[RMB]  Skip Remaining', {
+                        position = 'left-center', icon = 'location-dot', style = style
                     })
                 elseif stage == 'step3' then
-                    lib.showTextUI('**Step 3 of 3**\n**[LMB]** Set Position\n**[RMB]** Finish', {
-                        position = 'left-center', icon = 'location-dot'
+                    lib.showTextUI('Step 3 of 3\n[LMB]  Set Position\n[RMB]  Finish', {
+                        position = 'left-center', icon = 'location-dot', style = style
                     })
                 end
                 lastStage = stage
