@@ -167,7 +167,7 @@ local function SpawnLocation(locName, locData)
     -- Blip
     if locData.showBlip then
         local blip = AddBlipForCoord(locData.ped.coords.x, locData.ped.coords.y, locData.ped.coords.z)
-        SetBlipSprite(blip, 50)
+        SetBlipSprite(blip, locData.blipId or 61)
         SetBlipDisplay(blip, 4)
         SetBlipScale(blip, 0.8)
         SetBlipColour(blip, 2)
@@ -243,7 +243,7 @@ local function SpawnLocation(locName, locData)
             if dist < 15.0 then
                 DrawMarker(
                     2,
-                    locData.coords.x, locData.coords.y, locData.coords.z,
+                    locData.coords.x, locData.coords.y, locData.coords.z + 0.05,
                     0.0, 0.0, 0.0,
                     0.0, 0.0, 0.0,
                     0.3, 0.3, 0.3,

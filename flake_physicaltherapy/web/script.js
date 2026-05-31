@@ -359,60 +359,79 @@ function renderStepCard(number, step) {
 }
 
 /* ---- Blip Data ---- */
+// IDs from GTA V / FiveM SetBlipSprite native. Images self-filter — entries
+// with no matching PNG on docs.fivem.net are hidden automatically at runtime.
 const BLIPS = [
-    {id:0,name:'radar_higher'},{id:1,name:'radar_police'},{id:2,name:'radar_police_2'},{id:3,name:'radar_mp_police'},
-    {id:4,name:'radar_mp_police_2'},{id:5,name:'radar_mp_police_3'},{id:6,name:'radar_mp_police_4'},{id:7,name:'radar_mp_police_5'},
-    {id:8,name:'radar_mp_police_6'},{id:9,name:'radar_mp_police_7'},{id:10,name:'radar_mp_police_8'},{id:11,name:'radar_mp_police_9'},
-    {id:40,name:'radar_hospital'},{id:41,name:'radar_airport'},{id:42,name:'radar_bar'},{id:43,name:'radar_base_camp'},
-    {id:44,name:'radar_basketball'},{id:45,name:'radar_bikers'},{id:46,name:'radar_bowling'},{id:47,name:'radar_boxing'},
-    {id:48,name:'radar_car_mod'},{id:49,name:'radar_cash_register'},{id:50,name:'radar_cinema'},{id:51,name:'radar_circle_red'},
-    {id:52,name:'radar_clothes'},{id:53,name:'radar_crash'},{id:54,name:'radar_darts'},{id:55,name:'radar_default'},
-    {id:56,name:'radar_drugs'},{id:57,name:'radar_ex_girlfriend'},{id:58,name:'radar_friend'},{id:59,name:'radar_golf'},
-    {id:60,name:'radar_gun_shop'},{id:61,name:'radar_helicopter'},{id:62,name:'radar_hooker'},{id:63,name:'radar_hotel'},
-    {id:64,name:'radar_information'},{id:65,name:'radar_jewels'},{id:66,name:'radar_marina'},{id:67,name:'radar_mc_business'},
-    {id:68,name:'radar_north'},{id:69,name:'radar_package'},{id:70,name:'radar_parking'},{id:71,name:'radar_pay_and_spray'},
-    {id:72,name:'radar_petrol_station'},{id:73,name:'radar_phone'},{id:74,name:'radar_police_car'},{id:75,name:'radar_bar_2'},
-    {id:76,name:'radar_race_car'},{id:77,name:'radar_race_flag'},{id:78,name:'radar_random_character'},{id:79,name:'radar_random_female'},
-    {id:80,name:'radar_random_male'},{id:81,name:'radar_reporter'},{id:82,name:'radar_rob'},{id:83,name:'radar_safe_house'},
-    {id:84,name:'radar_shooting_range'},{id:85,name:'radar_skull'},{id:86,name:'radar_star'},{id:87,name:'radar_strip_club'},
-    {id:88,name:'radar_tattoo'},{id:89,name:'radar_tennis'},{id:90,name:'radar_toilet'},{id:91,name:'radar_triathlon'},
-    {id:92,name:'radar_unknown'},{id:93,name:'radar_wanted_radius'},{id:94,name:'radar_waypoint'},{id:95,name:'radar_yoga'},
-    {id:96,name:'radar_police_station'},{id:97,name:'radar_fire_station'},{id:98,name:'radar_bike'},{id:99,name:'radar_bicycle'},
-    {id:100,name:'radar_boat'},{id:101,name:'radar_cab'},{id:102,name:'radar_car'},{id:103,name:'radar_helicopter_2'},
-    {id:104,name:'radar_plane'},{id:105,name:'radar_quad'},{id:106,name:'radar_tank'},{id:107,name:'radar_truck'},
-    {id:108,name:'radar_van'},{id:120,name:'radar_character_michael'},{id:121,name:'radar_character_franklin'},
-    {id:122,name:'radar_character_trevor'},{id:123,name:'radar_character_mp'},{id:125,name:'radar_creator'},
-    {id:128,name:'radar_rampage'},{id:130,name:'radar_quarry'},{id:131,name:'radar_parachute_jump'},
-    {id:193,name:'radar_mp_crew'},{id:202,name:'radar_gtao_mission'},{id:203,name:'radar_gtao_freeroam'},
-    {id:213,name:'radar_property_for_sale'},{id:214,name:'radar_property_taken'},{id:215,name:'radar_garage_for_sale'},
-    {id:216,name:'radar_garage_taken'},{id:217,name:'radar_helipad_for_sale'},{id:218,name:'radar_helipad_taken'},
-    {id:219,name:'radar_dock_for_sale'},{id:220,name:'radar_dock_taken'},{id:221,name:'radar_hangar_for_sale'},
-    {id:222,name:'radar_hangar_taken'},{id:223,name:'radar_police_helicopter'},{id:224,name:'radar_boost'},
-    {id:225,name:'radar_devin_weston'},{id:226,name:'radar_simeon'},{id:227,name:'radar_trevor'},
-    {id:228,name:'radar_lamar'},{id:229,name:'radar_lester'},{id:230,name:'radar_ron'},{id:231,name:'radar_wade'},
-    {id:232,name:'radar_martin_madrazo'},{id:233,name:'radar_solomon_richards'},{id:234,name:'radar_hao'},
-    {id:235,name:'radar_chop'},{id:248,name:'radar_blimp'},{id:249,name:'radar_submarine'},
-    {id:250,name:'radar_sub_jet'},{id:251,name:'radar_parachute'},{id:261,name:'radar_bank'},
-    {id:262,name:'radar_car_dealership'},{id:263,name:'radar_cinema_2'},{id:264,name:'radar_clothes_2'},
-    {id:265,name:'radar_hair_salon'},{id:266,name:'radar_liquor_store'},{id:267,name:'radar_los_santos_customs'},
-    {id:268,name:'radar_massage'},{id:269,name:'radar_nightclub'},{id:271,name:'radar_post_office'},
-    {id:276,name:'radar_store'},{id:277,name:'radar_tattoo_2'},{id:279,name:'radar_gtao_property'},
-    {id:300,name:'radar_gtao_job_available'},{id:313,name:'radar_gtao_gang_attack'},
-    {id:327,name:'radar_gunrunning_supply'},{id:328,name:'radar_gunrunning_sell'},{id:329,name:'radar_gunrunning_research'},
-    {id:335,name:'radar_bike_shop'},{id:336,name:'radar_mc_headquarters'},{id:337,name:'radar_mc_sell'},
-    {id:338,name:'radar_mc_supply'},{id:339,name:'radar_mc_clubhouse'},{id:340,name:'radar_mc_weed'},
-    {id:341,name:'radar_mc_meth'},{id:342,name:'radar_mc_cocaine'},{id:343,name:'radar_mc_forgery'},
-    {id:344,name:'radar_mc_counterfeit_cash'},{id:345,name:'radar_office'},{id:347,name:'radar_warehouse'},
-    {id:349,name:'radar_vehicle_warehouse'},{id:351,name:'radar_gunrunning'},{id:352,name:'radar_bunker'},
-    {id:354,name:'radar_facility'},{id:355,name:'radar_hangar'},{id:356,name:'radar_nightclub_2'},
-    {id:357,name:'radar_casino'},{id:358,name:'radar_arena'},{id:359,name:'radar_arcade'},
-    {id:360,name:'radar_auto_shop'},{id:361,name:'radar_car_meet'},{id:362,name:'radar_agency'},
-    {id:363,name:'radar_freakshop'},{id:364,name:'radar_salvage_yard'},{id:365,name:'radar_chop_shop'},
-    {id:366,name:'radar_bail_office'},{id:368,name:'radar_ammo'},{id:370,name:'radar_armored_truck'},
-    {id:374,name:'radar_fib'},{id:378,name:'radar_ped'},{id:380,name:'radar_peyote'},
-    {id:382,name:'radar_suitcase'},{id:384,name:'radar_snitch'},{id:385,name:'radar_snitch_red'},
-    {id:386,name:'radar_snitch_yellow'},{id:389,name:'radar_mission_start'},{id:390,name:'radar_race_finish'},
-    {id:391,name:'radar_finish_line'},{id:392,name:'radar_respawn_point'}
+    // Navigation
+    {id:1,name:'radar_level'},{id:2,name:'radar_lower'},{id:0,name:'radar_higher'},
+    // Police / Emergency
+    {id:3,name:'radar_police'},{id:4,name:'radar_police_2'},{id:5,name:'radar_police_3'},
+    {id:6,name:'radar_police_4'},{id:7,name:'radar_police_5'},{id:8,name:'radar_police_6'},
+    {id:9,name:'radar_police_7'},{id:10,name:'radar_police_8'},{id:11,name:'radar_police_9'},
+    {id:12,name:'radar_police_10'},{id:13,name:'radar_police_11'},{id:14,name:'radar_police_12'},
+    {id:15,name:'radar_police_13'},{id:16,name:'radar_police_14'},{id:17,name:'radar_police_15'},
+    {id:18,name:'radar_police_16'},{id:19,name:'radar_police_17'},{id:20,name:'radar_police_18'},
+    {id:60,name:'radar_police_station'},{id:61,name:'radar_hospital'},{id:62,name:'radar_assassins_mark'},
+    {id:138,name:'radar_police_station_blue'},{id:139,name:'radar_airport'},
+    // Characters / story
+    {id:144,name:'radar_mp_michael'},{id:145,name:'radar_mp_franklin'},{id:146,name:'radar_mp_trevor'},
+    {id:147,name:'radar_michael'},{id:148,name:'radar_franklin'},{id:149,name:'radar_trevor'},
+    {id:150,name:'radar_devin'},{id:151,name:'radar_wade'},{id:152,name:'radar_ron'},
+    {id:153,name:'radar_lamar'},{id:154,name:'radar_lester'},{id:155,name:'radar_trevor_2'},
+    {id:156,name:'radar_dave_norton'},{id:157,name:'radar_martin_madrazo'},{id:158,name:'radar_simeon'},
+    {id:159,name:'radar_solomon'},{id:160,name:'radar_hao'},{id:161,name:'radar_chop'},
+    // Locations
+    {id:136,name:'radar_music_venue'},
+    {id:52,name:'radar_bar'},{id:53,name:'radar_basketball'},{id:54,name:'radar_barber'},
+    {id:55,name:'radar_bowling'},{id:56,name:'radar_car_mod_shop'},
+    {id:57,name:'radar_cinema'},{id:58,name:'radar_clothing_store'},
+    {id:59,name:'radar_golf'},{id:63,name:'radar_strip_club'},
+    {id:64,name:'radar_tattoo'},{id:65,name:'radar_yoga'},{id:66,name:'radar_shooting_range'},
+    {id:67,name:'radar_triathlon'},{id:68,name:'radar_tennis'},
+    {id:69,name:'radar_parachute_jump'},{id:70,name:'radar_swimming'},
+    {id:71,name:'radar_gun_shop'},{id:72,name:'radar_ammo_nation'},
+    {id:73,name:'radar_darts'},{id:74,name:'radar_comedy'},
+    {id:75,name:'radar_cab_company'},{id:76,name:'radar_pay_n_spray'},
+    {id:77,name:'radar_petrol_station'},{id:78,name:'radar_safe_house'},
+    {id:79,name:'radar_property_for_sale'},{id:80,name:'radar_property'},
+    {id:81,name:'radar_garage'},{id:82,name:'radar_helipad'},
+    {id:83,name:'radar_marina'},{id:84,name:'radar_hangar'},
+    {id:85,name:'radar_dock'},{id:86,name:'radar_ranch'},
+    {id:87,name:'radar_rampage'},{id:88,name:'radar_quarry'},
+    {id:89,name:'radar_altruist_camp'},
+    // Vehicles
+    {id:225,name:'radar_boat'},{id:226,name:'radar_helicopter'},{id:227,name:'radar_plane'},
+    {id:228,name:'radar_submarine'},{id:229,name:'radar_sub_jet'},{id:230,name:'radar_blimp'},
+    {id:231,name:'radar_parachute'},{id:232,name:'radar_jetpack'},
+    {id:233,name:'radar_bicycle'},{id:234,name:'radar_motorcycle'},
+    {id:235,name:'radar_car'},{id:236,name:'radar_truck'},{id:237,name:'radar_van'},
+    {id:238,name:'radar_police_car'},{id:239,name:'radar_police_helicopter'},
+    {id:240,name:'radar_ambulance'},{id:241,name:'radar_fire_truck'},
+    // GTA Online businesses
+    {id:75,name:'radar_bank'},
+    {id:404,name:'radar_office'},{id:405,name:'radar_warehouse'},{id:406,name:'radar_vehicle_warehouse'},
+    {id:408,name:'radar_bunker'},{id:409,name:'radar_facility'},{id:410,name:'radar_hangar_2'},
+    {id:411,name:'radar_nightclub'},{id:412,name:'radar_casino'},{id:413,name:'radar_arena'},
+    {id:414,name:'radar_arcade'},{id:415,name:'radar_auto_shop'},{id:416,name:'radar_car_meet'},
+    {id:417,name:'radar_agency'},{id:418,name:'radar_freakshop'},
+    {id:419,name:'radar_salvage_yard'},{id:420,name:'radar_chop_shop'},{id:421,name:'radar_bail_office'},
+    {id:422,name:'radar_mc_clubhouse'},{id:423,name:'radar_mc_business'},
+    {id:424,name:'radar_gunrunning'},{id:425,name:'radar_gunrunning_supply'},
+    {id:426,name:'radar_gunrunning_sell'},{id:427,name:'radar_gunrunning_research'},
+    // Misc
+    {id:442,name:'radar_gtao_mission'},{id:443,name:'radar_gtao_gang_attack'},
+    {id:444,name:'radar_fib'},{id:445,name:'radar_snitch'},
+    {id:446,name:'radar_peyote'},{id:447,name:'radar_suitcase'},
+    {id:448,name:'radar_mission_start'},{id:449,name:'radar_race_finish'},
+    {id:450,name:'radar_finish_line'},{id:451,name:'radar_respawn_point'},
+    {id:452,name:'radar_wanted_radius'},{id:453,name:'radar_waypoint'},
+    // Arena war vehicles
+    {id:660,name:'radar_arena_cerberus'},{id:661,name:'radar_arena_deathbike'},
+    {id:662,name:'radar_arena_dominator'},{id:663,name:'radar_arena_issi'},
+    {id:664,name:'radar_arena_sasquatch'},{id:665,name:'radar_arena_scarab'},
+    {id:666,name:'radar_arena_screamer'},{id:667,name:'radar_arena_shoulderbag'},
+    {id:668,name:'radar_arena_slamvan'},{id:669,name:'radar_arena_impaler'},
+    {id:670,name:'radar_arena_zhaba'},
 ];
 
 function buildBlipSelector(currentBlipId) {
@@ -444,11 +463,13 @@ function buildBlipSelector(currentBlipId) {
         filtered.forEach(b => {
             const item = document.createElement('div');
             item.className = 'blip-item' + (b.id === parseInt(hidden.value) ? ' selected' : '');
+            item.style.display = 'none'; // hidden until image confirms it loads
             item.title = `${b.id} - ${b.name}`;
             const img = document.createElement('img');
             img.src = `https://docs.fivem.net/blips/${b.name}.png`;
             img.alt = b.name;
-            img.onerror = function() { this.style.opacity = '0.15'; };
+            img.onload  = () => { item.style.display = ''; };
+            img.onerror = () => { item.remove(); };
             const lbl = document.createElement('span');
             lbl.textContent = b.name.replace('radar_', '');
             item.appendChild(img);
