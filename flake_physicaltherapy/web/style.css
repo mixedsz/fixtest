@@ -3,7 +3,7 @@
 html, body {
     width: 100%; height: 100%;
     overflow: hidden;
-    background: transparent !important;
+    background: rgba(0,0,0,0) !important;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     user-select: none;
 }
@@ -26,7 +26,7 @@ html, body {
     transition: width 0.3s cubic-bezier(.4,.14,.3,1), height 0.3s cubic-bezier(.4,.14,.3,1), top 0.3s, left 0.3s, transform 0.3s;
 }
 
-body { background: transparent !important; }
+body { background: rgba(0,0,0,0) !important; }
 
 .mac-window.minimized {
     width: 260px !important; height: 40px !important;
@@ -275,6 +275,17 @@ body { background: transparent !important; }
     transition: all 0.15s;
 }
 .add-step-btn:hover { background: rgba(10,132,255,0.25); }
+
+/* ===== VEC4 COORD INPUT ===== */
+.coord-field { display: flex; flex-direction: column; gap: 5px; }
+.coord-field label { font-size: 11px; color: rgba(255,255,255,0.45); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+.coord-input {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 7px; padding: 8px 11px; color: rgba(255,255,255,0.9); font-size: 12.5px;
+    outline: none; width: 100%; font-family: 'SF Mono', 'Fira Code', monospace;
+    transition: border-color 0.15s, background 0.15s;
+}
+.coord-input:focus { border-color: rgba(10,132,255,0.5); background: rgba(255,255,255,0.08); }
 
 /* ===== USE POSITION BUTTON ===== */
 .use-pos-btn {

@@ -210,13 +210,8 @@ function renderLocationEditor(name, data) {
 
     // Coords
     const coords = data.coords || { x: 0, y: 0, z: 0, w: 0 };
-    const locCoordRow = mkRow([
-        fieldNum('X', 'locCX', coords.x),
-        fieldNum('Y', 'locCY', coords.y),
-        fieldNum('Z', 'locCZ', coords.z),
-        fieldNum('W', 'locCW', coords.w)
-    ]);
-    form.appendChild(mkGroup('Location Coords', 'fa-solid fa-location-crosshairs', [mkUsePosBtn(['locCX','locCY','locCZ','locCW']), locCoordRow]));
+    const locCoordField = mkCoordGroup('Coords  (x, y, z, heading)', 'locCoords', coords.x, coords.y, coords.z, coords.w);
+    form.appendChild(mkGroup('Location Coords', 'fa-solid fa-location-crosshairs', [mkUsePosBtn('locCoords'), locCoordField]));
 
     // Cost / Blip
     const metaRow = mkRow([
@@ -231,13 +226,8 @@ function renderLocationEditor(name, data) {
         field('Ped Model', 'text', ped.model, { id: 'pedModel' })
     ]);
     const pedCoords = ped.coords || { x: 0, y: 0, z: 0, w: 0 };
-    const pedRow2 = mkRow([
-        fieldNum('X', 'pedCX', pedCoords.x),
-        fieldNum('Y', 'pedCY', pedCoords.y),
-        fieldNum('Z', 'pedCZ', pedCoords.z),
-        fieldNum('W', 'pedCW', pedCoords.w)
-    ]);
-    form.appendChild(mkGroup('Ped', 'fa-solid fa-user-doctor', [pedRow1, mkUsePosBtn(['pedCX','pedCY','pedCZ','pedCW']), pedRow2]));
+    const pedCoordField = mkCoordGroup('Coords  (x, y, z, heading)', 'pedCoords', pedCoords.x, pedCoords.y, pedCoords.z, pedCoords.w);
+    form.appendChild(mkGroup('Ped', 'fa-solid fa-user-doctor', [pedRow1, mkUsePosBtn('pedCoords'), pedCoordField]));
 
     // Steps
     const stepsWrap = document.createElement('div');
@@ -289,13 +279,9 @@ function renderStepCard(number, step) {
     });
 
     const body = document.createElement('div');
-    body.appendChild(mkUsePosBtn([`s${number}CX`, `s${number}CY`, `s${number}CZ`, `s${number}CW`]));
-    body.appendChild(mkRow([
-        fieldNum('X', `s${number}CX`, c.x),
-        fieldNum('Y', `s${number}CY`, c.y),
-        fieldNum('Z', `s${number}CZ`, c.z),
-        fieldNum('W', `s${number}CW`, c.w)
-    ]));
+    const stepCoordField = mkCoordGroup('Coords  (x, y, z, heading)', `s${number}Coords`, c.x, c.y, c.z, c.w);
+    body.appendChild(mkUsePosBtn(`s${number}Coords`));
+    body.appendChild(stepCoordField);
     body.appendChild(mkRow([
         fieldNum('Duration (ms)', `s${number}Dur`, p.duration),
         field('Label', 'text', p.label, { id: `s${number}Label` })
@@ -307,8 +293,7 @@ function renderStepCard(number, step) {
     ]));
     body.appendChild(mkRow([
         animSelect('Anim Dict', `s${number}Dict`, a.dict),
-        animSelect('Anim Clip', `s${number}Clip`, a.clip),
-        fieldNum('Anim Flag', `s${number}Flag`, a.flag)
+        animSelect('Anim Clip', `s${number}Clip`, a.clip)
     ]));
 
     card.appendChild(header);
@@ -484,7 +469,31 @@ function escapeHtml(str) {
     return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
 }
 
-function mkUsePosBtn(ids) {
+/* ---- Combined vec4 coord field ---- */
+function mkCoordGroup(labelText, id, x, y, z, w) {
+    const wrap = document.createElement('div');
+    wrap.className = 'coord-field';
+    const lbl = document.createElement('label');
+    lbl.textContent = labelText;
+    wrap.appendChild(lbl);
+    const inp = document.createElement('input');
+    inp.className = 'coord-input';
+    inp.id = id;
+    inp.type = 'text';
+    inp.placeholder = 'x, y, z, heading';
+    inp.value = [x, y, z, w].map(v => parseFloat(v || 0).toFixed(4)).join(', ');
+    wrap.appendChild(inp);
+    return wrap;
+}
+
+function parseCoordField(id) {
+    const el = document.getElementById(id);
+    if (!el) return { x: 0, y: 0, z: 0, w: 0 };
+    const parts = el.value.split(',').map(s => parseFloat(s.trim()) || 0);
+    return { x: parts[0] ?? 0, y: parts[1] ?? 0, z: parts[2] ?? 0, w: parts[3] ?? 0 };
+}
+
+function mkUsePosBtn(coordId) {
     const btn = document.createElement('button');
     btn.className = 'use-pos-btn';
     btn.innerHTML = '<i class="fa-solid fa-crosshairs"></i> Use My Position & Heading';
@@ -492,18 +501,11 @@ function mkUsePosBtn(ids) {
         try {
             const res = await fetch(`https://${GetParentResourceName()}/getPosition`, { method: 'POST', body: '{}' });
             const pos = await res.json();
-            fillCoords(ids, pos);
+            const el = document.getElementById(coordId);
+            if (el) el.value = [pos.x, pos.y, pos.z, pos.w].map(v => parseFloat(v || 0).toFixed(4)).join(', ');
         } catch (e) { console.error('getPosition failed', e); }
     });
     return btn;
-}
-
-async function fillCoords(ids, pos) {
-    if (!ids || !pos) return;
-    document.getElementById(ids[0]).value = (pos.x ?? 0).toFixed(4);
-    document.getElementById(ids[1]).value = (pos.y ?? 0).toFixed(4);
-    document.getElementById(ids[2]).value = (pos.z ?? 0).toFixed(4);
-    document.getElementById(ids[3]).value = (pos.w ?? 0).toFixed(4);
 }
 
 /* ---- Read location data from DOM ---- */
@@ -513,12 +515,12 @@ function readLocationData() {
     if (!loc) return;
 
     const newName = document.getElementById('locName')?.value.trim() || selectedLocation;
-    loc.coords = { x: floatVal('locCX'), y: floatVal('locCY'), z: floatVal('locCZ'), w: floatVal('locCW') };
+    loc.coords = parseCoordField('locCoords');
     loc.cost = floatVal('locCost');
     loc.showBlip = !!document.getElementById('locBlip')?.checked;
     loc.ped = {
         model: document.getElementById('pedModel')?.value || 's_m_m_doctor_01',
-        coords: { x: floatVal('pedCX'), y: floatVal('pedCY'), z: floatVal('pedCZ'), w: floatVal('pedCW') }
+        coords: parseCoordField('pedCoords')
     };
 
     const stepCards = document.querySelectorAll('#stepsWrap .step-card');
@@ -526,10 +528,7 @@ function readLocationData() {
     stepCards.forEach(card => {
         const idx = parseInt(card.dataset.stepIndex);
         loc.steps.push({
-            coords: {
-                x: floatVal(`s${idx}CX`), y: floatVal(`s${idx}CY`),
-                z: floatVal(`s${idx}CZ`), w: floatVal(`s${idx}CW`)
-            },
+            coords: parseCoordField(`s${idx}Coords`),
             progress: {
                 duration: intVal(`s${idx}Dur`),
                 label: document.getElementById(`s${idx}Label`)?.value || 'Step',
@@ -541,7 +540,7 @@ function readLocationData() {
                 anim: {
                     dict: document.getElementById(`s${idx}Dict`)?.value || '',
                     clip: document.getElementById(`s${idx}Clip`)?.value || '',
-                    flag: intVal(`s${idx}Flag`)
+                    flag: 7
                 }
             }
         });
