@@ -69,3 +69,13 @@ RegisterNUICallback('getPosition', function(data, cb)
     local heading = GetEntityHeading(ped)
     cb({ x = coords.x, y = coords.y, z = coords.z, w = heading })
 end)
+
+RegisterNUICallback('teleportToLocation', function(data, cb)
+    if data and data.coords then
+        local c = data.coords
+        local ped = PlayerPedId()
+        SetEntityCoords(ped, c.x, c.y, c.z, false, false, false, true)
+        SetEntityHeading(ped, c.w or 0.0)
+    end
+    cb({})
+end)

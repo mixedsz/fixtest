@@ -54,11 +54,12 @@ document.getElementById('maximizeBtn').addEventListener('click', () => {
     }
 });
 
-/* ---- Dragging ---- */
+/* ---- Dragging (RAF-throttled) ---- */
 const titleBar = document.getElementById('titleBar');
 const app = document.getElementById('app');
 let dragging = false;
 let dragOffset = { x: 0, y: 0 };
+let dragRaf = null, nextDragX = 0, nextDragY = 0;
 
 titleBar.addEventListener('mousedown', (e) => {
     if (e.target.closest('.light')) return;
@@ -72,13 +73,19 @@ titleBar.addEventListener('mousedown', (e) => {
 
 window.addEventListener('mousemove', (e) => {
     if (!dragging) return;
-    let x = e.clientX - dragOffset.x;
-    let y = e.clientY - dragOffset.y;
-    app.style.left = x + 'px';
-    app.style.top = y + 'px';
+    nextDragX = e.clientX - dragOffset.x;
+    nextDragY = e.clientY - dragOffset.y;
+    if (!dragRaf) {
+        dragRaf = requestAnimationFrame(() => {
+            app.style.left = nextDragX + 'px';
+            app.style.top = nextDragY + 'px';
+            dragRaf = null;
+        });
+    }
 });
 
 window.addEventListener('mouseup', () => {
+    if (dragRaf) { cancelAnimationFrame(dragRaf); dragRaf = null; }
     dragging = false;
 });
 
@@ -99,7 +106,13 @@ function selectTab(tab) {
 function populateGeneral(cfg) {
     setToggle('debug', !!cfg.Debug);
     document.getElementById('distance').value = cfg.Distance ?? 2.0;
-    document.getElementById('system').value = cfg.System ?? 'textui';
+    const sysContainer = document.getElementById('system-select');
+    sysContainer.innerHTML = '';
+    sysContainer.appendChild(mkCustomSelect('system', [
+        { value: 'textui',    text: 'textui' },
+        { value: 'ox_target', text: 'ox_target' },
+        { value: 'qb-target', text: 'qb-target' },
+    ], cfg.System ?? 'textui'));
     setToggle('cooldownEnable', !!(cfg.Cooldown && cfg.Cooldown.enable));
     document.getElementById('cooldownTime').value = (cfg.Cooldown && cfg.Cooldown.time) ?? 600;
     setToggle('slipEnable', !!(cfg.DoctorSlipItem && cfg.DoctorSlipItem.enable));
@@ -116,7 +129,7 @@ function setToggle(id, checked) {
 function readGeneral(cfg) {
     cfg.Debug = document.getElementById('debug').checked;
     cfg.Distance = parseFloat(document.getElementById('distance').value) || 2.0;
-    cfg.System = document.getElementById('system').value;
+    cfg.System = getSelectValue('system');
     cfg.Cooldown = {
         enable: document.getElementById('cooldownEnable').checked,
         time: parseInt(document.getElementById('cooldownTime').value) || 600
@@ -139,17 +152,44 @@ function renderLocationList() {
     for (const [name, data] of Object.entries(locs)) {
         const li = document.createElement('li');
         li.className = 'loc-item' + (selectedLocation === name ? ' active' : '');
-        li.innerHTML = `<span>${escapeHtml(name)}</span><i class="fa-solid fa-trash-can loc-delete"></i>`;
-        li.addEventListener('click', (e) => {
-            if (e.target.classList.contains('loc-delete')) {
-                delete configData.TherapyLocations[name];
-                if (selectedLocation === name) {
-                    selectedLocation = null;
-                    document.getElementById('locationEditor').innerHTML = '<div class="editor-placeholder">Select a location to edit</div>';
-                }
-                renderLocationList();
-                return;
+
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = name;
+
+        const actions = document.createElement('div');
+        actions.className = 'loc-actions';
+
+        const teleportBtn = document.createElement('i');
+        teleportBtn.className = 'fa-solid fa-location-arrow loc-teleport';
+        teleportBtn.title = 'Teleport to';
+        teleportBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const coords = data?.ped?.coords || data?.coords;
+            if (coords) {
+                fetch(`https://${GetParentResourceName()}/teleportToLocation`, {
+                    method: 'POST', body: JSON.stringify({ coords })
+                });
             }
+        });
+
+        const deleteBtn = document.createElement('i');
+        deleteBtn.className = 'fa-solid fa-trash-can loc-delete';
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            delete configData.TherapyLocations[name];
+            if (selectedLocation === name) {
+                selectedLocation = null;
+                document.getElementById('locationEditor').innerHTML = '<div class="editor-placeholder">Select a location to edit</div>';
+            }
+            renderLocationList();
+        });
+
+        actions.appendChild(teleportBtn);
+        actions.appendChild(deleteBtn);
+        li.appendChild(nameSpan);
+        li.appendChild(actions);
+
+        li.addEventListener('click', () => {
             selectedLocation = name;
             renderLocationList();
             renderLocationEditor(name, data);
@@ -286,10 +326,16 @@ function renderStepCard(number, step) {
         toggleField('Disable Move', `s${number}DisMove`, !!d.move),
         toggleField('Disable Combat', `s${number}DisCombat`, !!d.combat)
     ]));
-    body.appendChild(mkRow([
-        animSelect('Anim Dict', `s${number}Dict`, a.dict),
-        animSelect('Anim Clip', `s${number}Clip`, a.clip)
-    ]));
+    const animField = document.createElement('div');
+    animField.className = 'field';
+    const animLabel = document.createElement('label');
+    animLabel.textContent = 'Animation';
+    animField.appendChild(animLabel);
+    animField.appendChild(mkAnimSelect(`s${number}Anim`, a.dict, a.clip));
+    const animRow = document.createElement('div');
+    animRow.className = 'row';
+    animRow.appendChild(animField);
+    body.appendChild(animRow);
 
     card.appendChild(header);
     card.appendChild(body);
@@ -337,58 +383,123 @@ const ANIMATIONS = {
     'amb@code_human_wander_idles_cop@male@static': ['static'],
 };
 
-function animSelect(labelText, id, value) {
+/* ---- Custom Select ---- */
+document.addEventListener('click', () => {
+    document.querySelectorAll('.custom-select.open').forEach(s => s.classList.remove('open'));
+});
+
+function mkCustomSelect(id, options, currentValue) {
     const wrap = document.createElement('div');
-    wrap.className = 'field';
-    const lbl = document.createElement('label');
-    lbl.textContent = labelText;
-    wrap.appendChild(lbl);
+    wrap.className = 'custom-select';
+    wrap.dataset.selectId = id;
+    wrap.dataset.value = currentValue || '';
 
-    const sel = document.createElement('select');
-    sel.className = 'anim-select';
-    sel.id = id;
+    const trigger = document.createElement('div');
+    trigger.className = 'custom-select-trigger';
+    const label = document.createElement('span');
+    label.className = 'cs-label';
+    const chevron = document.createElement('i');
+    chevron.className = 'fa-solid fa-chevron-down cs-chevron';
+    trigger.appendChild(label);
+    trigger.appendChild(chevron);
 
-    const defaultOpt = document.createElement('option');
-    defaultOpt.value = '';
-    defaultOpt.textContent = '-- Select Animation --';
-    sel.appendChild(defaultOpt);
+    const dropdown = document.createElement('div');
+    dropdown.className = 'custom-select-dropdown';
 
-    for (const [dict, clips] of Object.entries(ANIMATIONS)) {
-        const group = document.createElement('optgroup');
-        group.label = dict;
-        for (const clip of clips) {
-            const opt = document.createElement('option');
-            opt.value = dict + '|' + clip;
-            opt.textContent = clip;
-            if (dict === value) opt.selected = true;
-            group.appendChild(opt);
+    function findLabel(val) {
+        for (const opt of options) {
+            if (opt.value === val) return opt.text;
         }
-        sel.appendChild(group);
+        return val || '— Select —';
     }
 
-    // If current value not in list, add it as custom
-    if (value && !Object.keys(ANIMATIONS).includes(value)) {
-        const custom = document.createElement('option');
-        custom.value = value + '|';
-        custom.textContent = value + ' (custom)';
-        custom.selected = true;
-        sel.insertBefore(custom, sel.children[1]);
+    function select(val) {
+        wrap.dataset.value = val;
+        label.textContent = findLabel(val);
+        dropdown.querySelectorAll('.cs-opt').forEach(o => o.classList.toggle('active', o.dataset.value === val));
+        wrap.classList.remove('open');
     }
 
-    sel.addEventListener('change', () => {
-        const val = sel.value;
-        if (val && val.includes('|')) {
-            const parts = val.split('|');
-            const dictId = id;
-            const clipId = id.replace('Dict', 'Clip');
-            const dictEl = document.getElementById(dictId);
-            const clipEl = document.getElementById(clipId);
-            if (dictEl) dictEl.value = parts[0];
-            if (clipEl) clipEl.value = parts[1] || '';
-        }
+    for (const opt of options) {
+        const el = document.createElement('div');
+        el.className = 'cs-opt' + (opt.value === currentValue ? ' active' : '');
+        el.dataset.value = opt.value;
+        el.textContent = opt.text;
+        el.addEventListener('click', e => { e.stopPropagation(); select(opt.value); });
+        dropdown.appendChild(el);
+    }
+
+    label.textContent = findLabel(currentValue);
+
+    trigger.addEventListener('click', e => {
+        e.stopPropagation();
+        const isOpen = wrap.classList.contains('open');
+        document.querySelectorAll('.custom-select.open').forEach(s => s.classList.remove('open'));
+        if (!isOpen) wrap.classList.add('open');
     });
 
-    wrap.appendChild(sel);
+    wrap.appendChild(trigger);
+    wrap.appendChild(dropdown);
+    return wrap;
+}
+
+function getSelectValue(id) {
+    const el = document.querySelector(`.custom-select[data-select-id="${id}"]`);
+    return el ? el.dataset.value : '';
+}
+
+function mkAnimSelect(id, dictValue, clipValue) {
+    const currentValue = (dictValue && clipValue) ? `${dictValue}|${clipValue}` : '';
+    const wrap = document.createElement('div');
+    wrap.className = 'custom-select';
+    wrap.dataset.selectId = id;
+    wrap.dataset.value = currentValue;
+
+    const trigger = document.createElement('div');
+    trigger.className = 'custom-select-trigger';
+    const label = document.createElement('span');
+    label.className = 'cs-label';
+    label.textContent = currentValue ? `${dictValue} › ${clipValue}` : '— Select Animation —';
+    const chevron = document.createElement('i');
+    chevron.className = 'fa-solid fa-chevron-down cs-chevron';
+    trigger.appendChild(label);
+    trigger.appendChild(chevron);
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'custom-select-dropdown';
+
+    function select(val, dictName, clipName) {
+        wrap.dataset.value = val;
+        label.textContent = val ? `${dictName} › ${clipName}` : '— Select Animation —';
+        dropdown.querySelectorAll('.cs-opt').forEach(o => o.classList.toggle('active', o.dataset.value === val));
+        wrap.classList.remove('open');
+    }
+
+    for (const [dict, clips] of Object.entries(ANIMATIONS)) {
+        const grp = document.createElement('div');
+        grp.className = 'cs-group-label';
+        grp.textContent = dict;
+        dropdown.appendChild(grp);
+        for (const clip of clips) {
+            const val = `${dict}|${clip}`;
+            const el = document.createElement('div');
+            el.className = 'cs-opt' + (val === currentValue ? ' active' : '');
+            el.dataset.value = val;
+            el.textContent = clip;
+            el.addEventListener('click', e => { e.stopPropagation(); select(val, dict, clip); });
+            dropdown.appendChild(el);
+        }
+    }
+
+    trigger.addEventListener('click', e => {
+        e.stopPropagation();
+        const isOpen = wrap.classList.contains('open');
+        document.querySelectorAll('.custom-select.open').forEach(s => s.classList.remove('open'));
+        if (!isOpen) wrap.classList.add('open');
+    });
+
+    wrap.appendChild(trigger);
+    wrap.appendChild(dropdown);
     return wrap;
 }
 
@@ -533,11 +644,11 @@ function readLocationData() {
                     move: !!document.getElementById(`s${idx}DisMove`)?.checked,
                     combat: !!document.getElementById(`s${idx}DisCombat`)?.checked
                 },
-                anim: {
-                    dict: document.getElementById(`s${idx}Dict`)?.value || '',
-                    clip: document.getElementById(`s${idx}Clip`)?.value || '',
-                    flag: 7
-                }
+                anim: (() => {
+                    const v = getSelectValue(`s${idx}Anim`);
+                    const p = v ? v.split('|') : ['', ''];
+                    return { dict: p[0] || '', clip: p[1] || '', flag: 7 };
+                })()
             }
         });
     });

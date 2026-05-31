@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flake Physical Therapy Admin</title>
+<title>Physical Therapy Admin</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -17,7 +17,7 @@
             <div class="light yellow" id="minimizeBtn" data-title="Minimize"><i class="fa-solid fa-minus"></i></div>
             <div class="light green" id="maximizeBtn" data-title="Fullscreen"><i class="fa-solid fa-expand"></i></div>
         </div>
-        <span class="title-bar-text">Flake Physical Therapy Admin</span>
+        <span class="title-bar-text">Physical Therapy Admin</span>
     </div>
 
     <!-- Content area -->
@@ -40,11 +40,7 @@
                         <div class="field"><label>Interaction Distance</label><input type="number" step="0.1" id="distance"></div>
                         <div class="field">
                             <label>Target System</label>
-                            <select id="system">
-                                <option value="textui">textui</option>
-                                <option value="ox_target">ox_target</option>
-                                <option value="qb-target">qb-target</option>
-                            </select>
+                            <div id="system-select"></div>
                         </div>
                     </div>
                 </div>
