@@ -298,6 +298,10 @@ function StartTherapy(locName, locData)
                 local emsCount = result.emsCount or 0
                 Config.Notify('There are ' .. emsCount .. " EMS online, we're unavailable now.", 'error')
 
+            elseif result.reason == 'NEEDS_SLIP' then
+                local itemName = result.item or 'doctor slip'
+                Config.Notify("You need a " .. itemName .. " to start therapy!", 'error')
+
             elseif result.reason == 'NO_MONEY' then
                 Config.Notify("You don't have enough money to start therapy!", 'error')
 

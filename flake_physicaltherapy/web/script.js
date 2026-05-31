@@ -161,7 +161,7 @@ function renderLocationList() {
 
         const teleportBtn = document.createElement('i');
         teleportBtn.className = 'fa-solid fa-location-arrow loc-teleport';
-        teleportBtn.title = 'Teleport to';
+        teleportBtn.setAttribute('data-title', 'Teleport to');
         teleportBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             const coords = data?.ped?.coords || data?.coords;
@@ -174,14 +174,17 @@ function renderLocationList() {
 
         const deleteBtn = document.createElement('i');
         deleteBtn.className = 'fa-solid fa-trash-can loc-delete';
+        deleteBtn.setAttribute('data-title', 'Delete');
         deleteBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            delete configData.TherapyLocations[name];
-            if (selectedLocation === name) {
-                selectedLocation = null;
-                document.getElementById('locationEditor').innerHTML = '<div class="editor-placeholder">Select a location to edit</div>';
-            }
-            renderLocationList();
+            showConfirmModal(`Delete "${name}"?`, 'This cannot be undone.', () => {
+                delete configData.TherapyLocations[name];
+                if (selectedLocation === name) {
+                    selectedLocation = null;
+                    document.getElementById('locationEditor').innerHTML = '<div class="editor-placeholder">Select a location to edit</div>';
+                }
+                renderLocationList();
+            });
         });
 
         actions.appendChild(teleportBtn);
@@ -654,6 +657,11 @@ function readLocationData() {
 function floatVal(id) { const el = document.getElementById(id); return el ? parseFloat(el.value) || 0 : 0; }
 function intVal(id)   { const el = document.getElementById(id); return el ? parseInt(el.value) || 0 : 0; }
 
+/* ---- ESC to close UI ---- */
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeUI();
+});
+
 /* ---- Custom modal (replaces prompt/alert — blocked in FiveM CEF) ---- */
 function showNameModal(title, defaultVal, onConfirm) {
     const overlay = document.createElement('div');
@@ -705,6 +713,52 @@ function showNameModal(title, defaultVal, onConfirm) {
         if (e.key === 'Enter') confirmBtn.click();
         if (e.key === 'Escape') close();
     });
+}
+
+function showConfirmModal(title, subtitle, onConfirm) {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+
+    const box = document.createElement('div');
+    box.className = 'modal-box';
+
+    const heading = document.createElement('p');
+    heading.className = 'modal-title';
+    heading.textContent = title;
+
+    if (subtitle) {
+        const sub = document.createElement('p');
+        sub.className = 'modal-subtitle';
+        sub.textContent = subtitle;
+        box.appendChild(heading);
+        box.appendChild(sub);
+    } else {
+        box.appendChild(heading);
+    }
+
+    const btns = document.createElement('div');
+    btns.className = 'modal-btns';
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'modal-btn cancel';
+    cancelBtn.textContent = 'Cancel';
+
+    const confirmBtn = document.createElement('button');
+    confirmBtn.className = 'modal-btn danger';
+    confirmBtn.textContent = 'Delete';
+
+    btns.appendChild(cancelBtn);
+    btns.appendChild(confirmBtn);
+    box.appendChild(btns);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+
+    requestAnimationFrame(() => { overlay.classList.add('visible'); confirmBtn.focus(); });
+
+    function close() { overlay.classList.remove('visible'); setTimeout(() => overlay.remove(), 150); }
+    cancelBtn.addEventListener('click', close);
+    confirmBtn.addEventListener('click', () => { close(); onConfirm(); });
+    overlay.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
 }
 
 function showToast(msg, type) {

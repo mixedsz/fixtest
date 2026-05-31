@@ -174,8 +174,11 @@ lib.callback.register('flake_physicaltherapy:attemptTherapy', function(src, cost
         end
     end
 
-    -- Doctor slip: bypass payment if item is enabled and player has it
-    if Config.DoctorSlipItem.enable and hasItem(src, Config.DoctorSlipItem.item) then
+    -- Doctor slip: required when enabled
+    if Config.DoctorSlipItem.enable then
+        if not hasItem(src, Config.DoctorSlipItem.item) then
+            return { success = false, reason = 'NEEDS_SLIP', item = Config.DoctorSlipItem.item }
+        end
         removeItem(src, Config.DoctorSlipItem.item)
 
         if Config.Cooldown.enable then
@@ -189,7 +192,7 @@ lib.callback.register('flake_physicaltherapy:attemptTherapy', function(src, cost
         return { success = true, usedItem = true }
     end
 
-    -- No item: standard money check
+    -- No slip required: standard money check
     local money = getPlayerMoney(src)
     if money < cost then
         return { success = false, reason = 'NO_MONEY' }
