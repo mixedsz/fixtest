@@ -14,12 +14,10 @@ html, body {
     transform: translate(-50%, -50%);
     width: 1050px; height: 720px;
     max-width: 95vw; max-height: 95vh;
-    background: rgba(28, 28, 30, 0.92);
-    backdrop-filter: blur(32px) saturate(180%);
-    -webkit-backdrop-filter: blur(32px) saturate(180%);
+    background: rgba(28, 28, 30, 0.97);
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 14px;
-    box-shadow: 0 30px 70px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
     display: flex; flex-direction: column;
     overflow: hidden;
     transition: width 0.3s cubic-bezier(.4,.14,.3,1), height 0.3s cubic-bezier(.4,.14,.3,1);
