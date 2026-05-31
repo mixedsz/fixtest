@@ -128,10 +128,12 @@ html, body {
     position: absolute; inset: 0; overflow-y: auto; padding: 24px 30px;
     opacity: 0; pointer-events: none; transform: translateY(6px); transition: all 0.2s ease;
 }
+#panel-locations {
+    overflow: hidden; padding: 16px 20px;
+}
 .tab-panel.active { opacity: 1; pointer-events: auto; transform: translateY(0); }
-.tab-panel::-webkit-scrollbar { width: 8px; }
-.tab-panel::-webkit-scrollbar-track { background: transparent; }
-.tab-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.10); border-radius: 4px; }
+.tab-panel::-webkit-scrollbar { display: none; }
+.tab-panel { scrollbar-width: none; }
 
 /* ===== SECTION CARDS ===== */
 .section-card {
@@ -202,7 +204,7 @@ html, body {
 .toggle-label { font-size: 13px; color: rgba(255,255,255,0.75); }
 
 /* ===== LOCATIONS ===== */
-.locations-layout { display: flex; gap: 18px; height: 100%; }
+.locations-layout { display: flex; gap: 18px; height: 100%; overflow: hidden; }
 .location-list-section { width: 220px; min-width: 220px; display: flex; flex-direction: column; gap: 8px; }
 .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
 .section-header h3 { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.8); }
@@ -219,8 +221,8 @@ html, body {
     list-style: none; flex: 1; overflow-y: auto;
     display: flex; flex-direction: column; gap: 5px;
 }
-#locationList::-webkit-scrollbar { width: 6px; }
-#locationList::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+#locationList::-webkit-scrollbar { display: none; }
+#locationList { scrollbar-width: none; }
 
 .loc-item {
     display: flex; align-items: center; justify-content: space-between;
@@ -239,9 +241,8 @@ html, body {
 .loc-teleport { color: rgba(255,255,255,0.45); }
 .loc-teleport:hover { color: #5ea8ff; }
 
-.location-editor { flex: 1; overflow-y: auto; padding-right: 6px; }
-.location-editor::-webkit-scrollbar { width: 8px; }
-.location-editor::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.10); border-radius: 4px; }
+.location-editor { flex: 1; overflow-y: auto; padding-right: 6px; scrollbar-width: none; }
+.location-editor::-webkit-scrollbar { display: none; }
 
 .editor-placeholder {
     width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
@@ -343,8 +344,8 @@ html, body {
     transition: opacity 0.12s, transform 0.12s;
     box-shadow: 0 8px 24px rgba(0,0,0,0.5);
 }
-.custom-select-dropdown::-webkit-scrollbar { width: 6px; }
-.custom-select-dropdown::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+.custom-select-dropdown::-webkit-scrollbar { display: none; }
+.custom-select-dropdown { scrollbar-width: none; }
 .custom-select.open .custom-select-dropdown { opacity: 1; transform: translateY(0); pointer-events: auto; }
 .cs-group-label {
     padding: 8px 11px 3px; font-size: 10px; font-weight: 700;

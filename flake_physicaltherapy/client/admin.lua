@@ -96,6 +96,8 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
     local lastStage = nil
     local placed    = { ped = nil, steps = {} }
 
+    local lastFloorPos = nil  -- last known good floor hit
+
     local function getRay()
         local cam = GetGameplayCamCoord()
         local rot = GetGameplayCamRot(2)
@@ -104,24 +106,37 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
         local dir = vector3(-math.sin(f) * math.cos(p), math.cos(f) * math.cos(p), math.sin(p))
         local dst = cam + dir * 60.0
         local ray = StartShapeTestRay(cam.x, cam.y, cam.z, dst.x, dst.y, dst.z, 1 + 16, ghostPed, 0)
-        local _, hit, pos = GetShapeTestResult(ray)
-        return hit, pos
+        local _, hit, pos, normal = GetShapeTestResult(ray)
+        -- Only accept surfaces that are mostly horizontal (floor/ground), reject walls
+        if hit and normal and normal.z > 0.5 then
+            lastFloorPos = pos
+            return true, pos
+        end
+        return false, lastFloorPos
     end
 
-    local function snapToGround(x, y, z)
-        -- Ray already hit the surface — place directly at hit pos then let the engine correct foot offset
+    local function placeOnFloor(x, y, z)
         SetEntityCoordsNoOffset(ghostPed, x, y, z, false, false, false)
         PlaceObjectOnGroundProperly(ghostPed)
     end
 
     local function forceGroundSnap()
         local pos = GetEntityCoords(ghostPed)
-        SetEntityCoordsNoOffset(ghostPed, pos.x, pos.y, pos.z + 2.0, false, false, false)
-        PlaceObjectOnGroundProperly(ghostPed)
-        local found, gz = GetGroundZFor_3dCoord(pos.x, pos.y, pos.z + 2.0, false)
+        -- Try engine ground first (works outdoors)
+        local found, gz = GetGroundZFor_3dCoord(pos.x, pos.y, pos.z + 3.0, false)
         if found then
             SetEntityCoordsNoOffset(ghostPed, pos.x, pos.y, gz, false, false, false)
             PlaceObjectOnGroundProperly(ghostPed)
+        else
+            -- Indoors: shoot a ray straight down to find the floor
+            local top = vector3(pos.x, pos.y, pos.z + 3.0)
+            local bot = vector3(pos.x, pos.y, pos.z - 5.0)
+            local ray = StartShapeTestRay(top.x, top.y, top.z, bot.x, bot.y, bot.z, 1 + 16, ghostPed, 0)
+            local _, hit, hitPos, normal = GetShapeTestResult(ray)
+            if hit and normal and normal.z > 0.5 then
+                SetEntityCoordsNoOffset(ghostPed, pos.x, pos.y, hitPos.z, false, false, false)
+                PlaceObjectOnGroundProperly(ghostPed)
+            end
         end
     end
 
@@ -139,35 +154,21 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
             -- Update ox_lib textui only on stage change
             if stage ~= lastStage then
                 if stage == 'ped' then
-                    lib.showTextUI(
-                        '**Place Therapy Ped**\n' ..
-                        '~g~[LMB]~s~ Confirm position\n' ..
-                        '~b~[Scroll]~s~ Rotate left / right\n' ..
-                        '~y~[L.ALT]~s~ Snap to ground\n' ..
-                        '~r~[RMB]~s~ Cancel',
-                        { position = 'left-center', icon = 'user-doctor' }
-                    )
+                    lib.showTextUI('[LMB] Place Ped  |  [Scroll] Rotate  |  [L.Alt] Snap to Ground  |  [RMB] Cancel', {
+                        position = 'left-center', icon = 'user-doctor'
+                    })
                 elseif stage == 'step1' then
-                    lib.showTextUI(
-                        '**Step 1 of 3 — Walk Position**\n' ..
-                        '~g~[LMB]~s~ Confirm\n' ..
-                        '~r~[RMB]~s~ Skip remaining steps',
-                        { position = 'left-center', icon = 'location-dot' }
-                    )
+                    lib.showTextUI('[LMB] Set Step 1  |  [RMB] Skip All Steps', {
+                        position = 'left-center', icon = 'location-dot'
+                    })
                 elseif stage == 'step2' then
-                    lib.showTextUI(
-                        '**Step 2 of 3 — Exercise Position**\n' ..
-                        '~g~[LMB]~s~ Confirm\n' ..
-                        '~r~[RMB]~s~ Skip remaining steps',
-                        { position = 'left-center', icon = 'location-dot' }
-                    )
+                    lib.showTextUI('[LMB] Set Step 2  |  [RMB] Skip Remaining', {
+                        position = 'left-center', icon = 'location-dot'
+                    })
                 elseif stage == 'step3' then
-                    lib.showTextUI(
-                        '**Step 3 of 3 — Final Position**\n' ..
-                        '~g~[LMB]~s~ Confirm\n' ..
-                        '~r~[RMB]~s~ Finish & save',
-                        { position = 'left-center', icon = 'location-dot' }
-                    )
+                    lib.showTextUI('[LMB] Set Step 3  |  [RMB] Finish', {
+                        position = 'left-center', icon = 'location-dot'
+                    })
                 end
                 lastStage = stage
             end
@@ -176,7 +177,7 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
 
             if stage == 'ped' then
                 if hit then
-                    snapToGround(hitPos.x, hitPos.y, hitPos.z)
+                    placeOnFloor(hitPos.x, hitPos.y, hitPos.z)
                 end
 
                 -- Scroll wheel rotation — 10 deg per tick
