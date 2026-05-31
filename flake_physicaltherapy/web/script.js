@@ -18,9 +18,15 @@ window.addEventListener('message', function (event) {
     } else if (data.action === 'pedPlacementResult') {
         const { name, ped, steps } = data;
         if (!configData.TherapyLocations) configData.TherapyLocations = {};
+        // Default animations match the Pillbox location (users can edit after)
+        const defaultAnims = [
+            { dict: 'mini@triathlon',          clip: 'idle_e',           label: 'Leg Stretching...' },
+            { dict: 'mini@triathlon',          clip: 'idle_f',           label: 'Arm Stretching...' },
+            { dict: 'timetable@reunited@ig_2', clip: 'jimmy_getknocked', label: 'Exercising...'     },
+        ];
         const mkStep = (c, i) => ({
             coords: c || { x: 0, y: 0, z: 0, w: 0 },
-            progress: { duration: 20000, label: 'Step ' + (i + 1), canCancel: false, disable: { move: true, combat: true }, anim: { dict: '', clip: '', flag: 7 } }
+            progress: { duration: 20000, label: defaultAnims[i].label, canCancel: false, disable: { move: true, combat: true }, anim: { dict: defaultAnims[i].dict, clip: defaultAnims[i].clip, flag: 7 } }
         });
         configData.TherapyLocations[name] = {
             coords: { ...ped },

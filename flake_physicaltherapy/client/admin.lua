@@ -143,39 +143,33 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
             DisableControlAction(0, 241, true)  -- scroll up
             DisableControlAction(0, 242, true)  -- scroll down
 
-            -- show textUI only when stage changes
-            if stage ~= lastStage then
-                local style = { whiteSpace = 'pre-line' }
-                if stage == 'ped' then
-                    lib.showTextUI('[LMB] Place Ped\n[Scroll / ← →] Rotate\n[RMB] Cancel', {
-                        position = 'left-center', icon = 'user-doctor', style = style
-                    })
-                elseif stage == 'step1' then
-                    lib.showTextUI('Step 1 of 3\n[LMB] Set Position\n[RMB] Skip All Steps', {
-                        position = 'left-center', icon = 'location-dot', style = style
-                    })
-                elseif stage == 'step2' then
-                    lib.showTextUI('Step 2 of 3\n[LMB] Set Position\n[RMB] Skip Remaining', {
-                        position = 'left-center', icon = 'location-dot', style = style
-                    })
-                elseif stage == 'step3' then
-                    lib.showTextUI('Step 3 of 3\n[LMB] Set Position\n[RMB] Finish', {
-                        position = 'left-center', icon = 'location-dot', style = style
-                    })
-                end
-                lastStage = stage
+            -- re-show textUI every frame so other resources can't permanently kill it
+            local style = { whiteSpace = 'pre-line' }
+            if stage == 'ped' then
+                lib.showTextUI('[LMB] Place Ped\n[Scroll / ← →] Rotate\n[RMB] Cancel', {
+                    position = 'left-center', icon = 'user-doctor', style = style
+                })
+            elseif stage == 'step1' then
+                lib.showTextUI('Step 1 of 3\n[LMB] Set Position\n[RMB] Skip All Steps', {
+                    position = 'left-center', icon = 'location-dot', style = style
+                })
+            elseif stage == 'step2' then
+                lib.showTextUI('Step 2 of 3\n[LMB] Set Position\n[RMB] Skip Remaining', {
+                    position = 'left-center', icon = 'location-dot', style = style
+                })
+            elseif stage == 'step3' then
+                lib.showTextUI('Step 3 of 3\n[LMB] Set Position\n[RMB] Finish', {
+                    position = 'left-center', icon = 'location-dot', style = style
+                })
             end
 
             local rayHit, rayPos = placementRay()
 
             if stage == 'ped' then
                 if rayHit then
-                    -- Ped entity origin is at pelvis (~1.0m above feet).
-                    -- Add 1.0 so feet land exactly on the surface Z the ray returned.
                     SetEntityCoordsNoOffset(ghostPed, rayPos.x, rayPos.y, rayPos.z + 1.0, false, false, false)
                 end
 
-                -- rotation: scroll wheel (one click = 5°) or held arrow keys (1°/frame)
                 if IsDisabledControlJustPressed(0, 241) or IsDisabledControlPressed(0, 174) then
                     pedHeading = (pedHeading + 5.0) % 360.0
                 end
@@ -184,22 +178,33 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
                 end
                 SetEntityHeading(ghostPed, pedHeading)
 
-                if IsDisabledControlJustPressed(0, 24) then   -- LMB confirm
+                if IsDisabledControlJustPressed(0, 24) then
                     local pos = GetEntityCoords(ghostPed)
-                    -- subtract the 1.0 offset so the saved Z is at true floor level
                     placed.ped = { x = pos.x, y = pos.y, z = pos.z - 1.0, w = pedHeading }
                     SetEntityAlpha(ghostPed, 50, false)
                     stage = 'step1'
-                elseif IsDisabledControlJustPressed(0, 25) then  -- RMB cancel
+                elseif IsDisabledControlJustPressed(0, 25) then
                     stage = 'cancel'
                 end
 
             elseif stage == 'step1' or stage == 'step2' or stage == 'step3' then
                 local n = tonumber(stage:sub(-1))
+
+                -- draw already-confirmed step markers so user can see all placed positions
+                for i = 1, n - 1 do
+                    local s = placed.steps[i]
+                    if s then
+                        DrawMarker(1, s.x, s.y, s.z, 0,0,0, 0,0,0,
+                            0.5, 0.5, 0.4, 0, 200, 100, 220, false, true, 2, nil, nil, false)
+                    end
+                end
+
+                -- cursor marker for current step (orange)
                 if rayHit then
                     DrawMarker(1, rayPos.x, rayPos.y, rayPos.z, 0,0,0, 0,0,0,
                         0.5, 0.5, 0.4, 255, 165, 0, 180, false, true, 2, nil, nil, false)
                 end
+
                 if IsDisabledControlJustPressed(0, 24) and rayHit then
                     placed.steps[n] = { x = rayPos.x, y = rayPos.y, z = rayPos.z, w = 0.0 }
                     stage = n < 3 and ('step' .. (n + 1)) or 'done'
