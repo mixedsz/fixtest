@@ -34,7 +34,7 @@ window.addEventListener('message', function (event) {
         const interactionCoords = {
             x: ped.x + Math.sin(headRad) * 1.5,
             y: ped.y + Math.cos(headRad) * 1.5,
-            z: ped.z + 1.0,
+            z: ped.z,
             w: ped.w || 0,
         };
         configData.TherapyLocations[name] = {
@@ -1587,7 +1587,7 @@ function readLocationData() {
     loc.coords = {
         x: pedC.x + Math.sin(headRad) * 1.5,
         y: pedC.y + Math.cos(headRad) * 1.5,
-        z: pedC.z + 1.0,
+        z: pedC.z,
         w: pedC.w || 0,
     };
     loc.cost = floatVal('locCost');

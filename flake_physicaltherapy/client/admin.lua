@@ -208,7 +208,7 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
                 end
 
                 if IsDisabledControlJustPressed(0, 24) and rayHit then
-                    placed.steps[n] = { x = rayPos.x, y = rayPos.y, z = rayPos.z + 0.1 }
+                    placed.steps[n] = { x = rayPos.x, y = rayPos.y, z = rayPos.z + 0.5 }
                     stage = n < 3 and ('step' .. (n + 1)) or 'done'
                 elseif IsDisabledControlJustPressed(0, 25) then
                     stage = 'done'
