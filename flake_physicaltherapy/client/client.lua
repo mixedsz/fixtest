@@ -237,11 +237,11 @@ local function SpawnLocation(locName, locData)
 
             if dist < 15.0 then
                 DrawMarker(
-                    0,
-                    locData.coords.x, locData.coords.y, locData.coords.z + 1.5,
+                    2,
+                    locData.coords.x, locData.coords.y, locData.coords.z,
                     0.0, 0.0, 0.0,
                     0.0, 0.0, 0.0,
-                    1.5, 1.5, 1.5,
+                    0.5, 0.5, 0.5,
                     0, 255, 0, 150,
                     false, false, 2, true, nil, nil, false
                 )
@@ -395,11 +395,11 @@ function DoTherapyStep(stepData, stepNumber, onComplete)
             -- Inverted cone: tip touches floor, visible from 50 m
             if dist < 50.0 then
                 DrawMarker(
-                    0,
-                    stepCoords.x, stepCoords.y, stepCoords.z + 1.5,
+                    2,
+                    stepCoords.x, stepCoords.y, stepCoords.z,
                     0.0, 0.0, 0.0,
                     0.0, 0.0, 0.0,
-                    1.5, 1.5, 1.5,
+                    0.5, 0.5, 0.5,
                     255, 255, 0, 150,
                     false, false, 2, true, nil, nil, false
                 )
