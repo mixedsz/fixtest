@@ -25,11 +25,19 @@ window.addEventListener('message', function (event) {
             { dict: 'timetable@reunited@ig_2', clip: 'jimmy_getknocked', label: 'Exercising...'     },
         ];
         const mkStep = (c, i) => ({
-            coords: c || { x: 0, y: 0, z: 0, w: 0 },
+            coords: c || { x: 0, y: 0, z: 0 },
             progress: { duration: 20000, label: defaultAnims[i].label, canCancel: false, disable: { move: true, combat: true }, anim: { dict: defaultAnims[i].dict, clip: defaultAnims[i].clip, flag: 7 } }
         });
+        // Place interaction marker 1.5m in front of the ped based on heading
+        const headRad = ((ped.w || 0) * Math.PI) / 180;
+        const interactionCoords = {
+            x: ped.x + (-Math.sin(headRad)) * 1.5,
+            y: ped.y + Math.cos(headRad) * 1.5,
+            z: ped.z,
+            w: ped.w || 0,
+        };
         configData.TherapyLocations[name] = {
-            coords: { ...ped },
+            coords: interactionCoords,
             cost: 500,
             showBlip: true,
             ped: { model: 's_m_m_doctor_01', coords: { ...ped } },
