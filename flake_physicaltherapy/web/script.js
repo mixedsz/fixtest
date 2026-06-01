@@ -1582,7 +1582,14 @@ function readLocationData() {
 
     const newName = document.getElementById('locName')?.value.trim() || selectedLocation;
     const pedC = parseCoordField('pedCoords');
-    loc.coords = { ...pedC };
+    // Interaction marker 1.5m in front of ped: GTA V forward = (sin H, cos H)
+    const headRad = ((pedC.w || 0) * Math.PI) / 180;
+    loc.coords = {
+        x: pedC.x + Math.sin(headRad) * 1.5,
+        y: pedC.y + Math.cos(headRad) * 1.5,
+        z: pedC.z,
+        w: pedC.w || 0,
+    };
     loc.cost = floatVal('locCost');
     loc.showBlip = !!document.getElementById('locBlip')?.checked;
     loc.blipId = parseInt(document.getElementById('locBlipId')?.value) || 0;
