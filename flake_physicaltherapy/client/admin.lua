@@ -208,7 +208,7 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
                 end
 
                 if IsDisabledControlJustPressed(0, 24) and rayHit then
-                    placed.steps[n] = { x = rayPos.x, y = rayPos.y, z = rayPos.z, w = 0.0 }
+                    placed.steps[n] = { x = rayPos.x, y = rayPos.y, z = rayPos.z }
                     stage = n < 3 and ('step' .. (n + 1)) or 'done'
                 elseif IsDisabledControlJustPressed(0, 25) then
                     stage = 'done'
@@ -224,7 +224,7 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
         if stage == 'done' and placed.ped then
             local stepsOut = {}
             for i = 1, 3 do
-                stepsOut[i] = placed.steps[i] or { x = 0.0, y = 0.0, z = 0.0, w = 0.0 }
+                stepsOut[i] = placed.steps[i] or { x = 0.0, y = 0.0, z = 0.0 }
             end
             SendNUIMessage({
                 action = 'pedPlacementResult',

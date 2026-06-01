@@ -51,7 +51,7 @@ Config.TherapyLocations = {
         },
         steps = {
             {
-                coords = vec4(322.3745, -592.3754, 43.2841, 68.9359),
+                coords = vec3(322.3745, -592.3754, 43.2841),
                 progress = {
                     duration  = 20000,
                     label     = 'Leg Stretching...',
@@ -65,7 +65,7 @@ Config.TherapyLocations = {
                 },
             },
             {
-                coords = vec4(319.3133, -593.7554, 43.2841, 344.1032),
+                coords = vec3(319.3133, -593.7554, 43.2841),
                 progress = {
                     duration  = 20000,
                     label     = 'Arm Stretching...',
@@ -79,7 +79,7 @@ Config.TherapyLocations = {
                 },
             },
             {
-                coords = vec4(316.1853, -592.1685, 43.2841, 333.1860),
+                coords = vec3(316.1853, -592.1685, 43.2841),
                 progress = {
                     duration  = 20000,
                     label     = 'Exercising...',
@@ -105,7 +105,7 @@ Config.TherapyLocations = {
         },
         steps = {
             {
-                coords = vec4(5195.3921, -5011.9624, 14.1762, 46.0579),
+                coords = vec3(5195.3921, -5011.9624, 14.1762),
                 progress = {
                     duration  = 6000,
                     label     = 'Stretching...',
@@ -119,7 +119,7 @@ Config.TherapyLocations = {
                 },
             },
             {
-                coords = vec4(5197.6641, -5009.8486, 14.2756, 39.5841),
+                coords = vec3(5197.6641, -5009.8486, 14.2756),
                 progress = {
                     duration  = 6000,
                     label     = 'Stretching...',

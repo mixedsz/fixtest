@@ -237,11 +237,11 @@ local function SpawnLocation(locName, locData)
 
             if dist < 15.0 then
                 DrawMarker(
-                    2,
-                    locData.coords.x, locData.coords.y, locData.coords.z + 0.15,
+                    0,
+                    locData.coords.x, locData.coords.y, locData.coords.z + 1.5,
                     0.0, 0.0, 0.0,
                     0.0, 0.0, 0.0,
-                    0.5, 0.5, 0.3,
+                    1.5, 1.5, 1.5,
                     0, 255, 0, 150,
                     false, false, 2, true, nil, nil, false
                 )
@@ -381,8 +381,7 @@ function DoTherapyStep(stepData, stepNumber, onComplete)
         return
     end
 
-    local stepCoords  = vec3(stepData.coords.x, stepData.coords.y, stepData.coords.z)
-    local stepHeading = stepData.coords.w
+    local stepCoords = vec3(stepData.coords.x, stepData.coords.y, stepData.coords.z)
 
     CreateThread(function()
         local done = false
@@ -393,14 +392,14 @@ function DoTherapyStep(stepData, stepNumber, onComplete)
             local playerCoords = GetEntityCoords(PlayerPedId())
             local dist         = #(playerCoords - stepCoords)
 
-            -- Yellow marker visible from 50 m
+            -- Inverted cone: tip touches floor, visible from 50 m
             if dist < 50.0 then
                 DrawMarker(
-                    2,
-                    stepCoords.x, stepCoords.y, stepCoords.z + 0.15,
+                    0,
+                    stepCoords.x, stepCoords.y, stepCoords.z + 1.5,
                     0.0, 0.0, 0.0,
                     0.0, 0.0, 0.0,
-                    0.5, 0.5, 0.3,
+                    1.5, 1.5, 1.5,
                     255, 255, 0, 150,
                     false, false, 2, true, nil, nil, false
                 )
@@ -414,9 +413,6 @@ function DoTherapyStep(stepData, stepNumber, onComplete)
                     done = true
                     Config.hideTextUI()
                     Config.Notify("Keep going, you're almost done!", 'success')
-
-                    -- Face the correct heading for the animation
-                    SetEntityHeading(PlayerPedId(), stepHeading)
 
                     -- ox_lib progress bar (blocks movement/combat, plays anim)
                     lib.progressBar(stepData.progress)
