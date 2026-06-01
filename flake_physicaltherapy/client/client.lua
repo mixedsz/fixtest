@@ -144,22 +144,18 @@ local function SpawnLocation(locName, locData)
         Wait(10)
     end
 
-    local ped = CreatePed(
-        4,
-        modelHash,
-        locData.ped.coords.x,
-        locData.ped.coords.y,
-        locData.ped.coords.z,
-        locData.ped.coords.w,
-        false,
-        true
-    )
+    local px = locData.ped.coords.x
+    local py = locData.ped.coords.y
+    local pz = locData.ped.coords.z
+    local found, groundZ = GetGroundZFor_3dCoord(px, py, pz + 2.0, false)
+    if found then pz = groundZ end
+
+    local ped = CreatePed(4, modelHash, px, py, pz, locData.ped.coords.w, false, true)
 
     SetEntityInvincible(ped, true)
     SetBlockingOfNonTemporaryEvents(ped, true)
     SetPedDiesWhenInjured(ped, false)
     SetEntityAsMissionEntity(ped, true, true)
-    SetEntityOnGroundProperly(ped)
     FreezeEntityPosition(ped, true)
 
     SpawnedPeds[locName] = ped
