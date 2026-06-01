@@ -159,6 +159,7 @@ local function SpawnLocation(locName, locData)
     SetBlockingOfNonTemporaryEvents(ped, true)
     SetPedDiesWhenInjured(ped, false)
     SetEntityAsMissionEntity(ped, true, true)
+    SetEntityOnGroundProperly(ped)
     FreezeEntityPosition(ped, true)
 
     SpawnedPeds[locName] = ped

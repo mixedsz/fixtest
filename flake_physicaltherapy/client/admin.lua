@@ -66,7 +66,9 @@ RegisterNUICallback('getPosition', function(data, cb)
     local ped = PlayerPedId()
     local coords = GetEntityCoords(ped)
     local heading = GetEntityHeading(ped)
-    cb({ x = coords.x, y = coords.y, z = coords.z, w = heading })
+    local found, groundZ = GetGroundZFor_3dCoord(coords.x, coords.y, coords.z, false)
+    local z = found and groundZ or coords.z
+    cb({ x = coords.x, y = coords.y, z = z, w = heading })
 end)
 
 -- =====================
