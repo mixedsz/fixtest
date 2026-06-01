@@ -147,8 +147,6 @@ local function SpawnLocation(locName, locData)
     local px = locData.ped.coords.x
     local py = locData.ped.coords.y
     local pz = locData.ped.coords.z
-    local found, groundZ = GetGroundZFor_3dCoord(px, py, pz + 2.0, false)
-    if found then pz = groundZ end
 
     local ped = CreatePed(4, modelHash, px, py, pz, locData.ped.coords.w, false, true)
 
@@ -240,7 +238,7 @@ local function SpawnLocation(locName, locData)
             if dist < 15.0 then
                 DrawMarker(
                     2,
-                    locData.coords.x, locData.coords.y, locData.coords.z + 0.5,
+                    locData.coords.x, locData.coords.y, locData.coords.z,
                     0.0, 0.0, 0.0,
                     0.0, 0.0, 0.0,
                     0.3, 0.3, 0.3,
@@ -399,7 +397,7 @@ function DoTherapyStep(stepData, stepNumber, onComplete)
             if dist < 50.0 then
                 DrawMarker(
                     2,
-                    stepCoords.x, stepCoords.y, stepCoords.z + 0.5,
+                    stepCoords.x, stepCoords.y, stepCoords.z,
                     0.0, 0.0, 0.0,
                     0.0, 0.0, 0.0,
                     0.3, 0.3, 0.3,
