@@ -240,7 +240,7 @@ local function SpawnLocation(locName, locData)
             if dist < 15.0 then
                 DrawMarker(
                     2,
-                    locData.coords.x, locData.coords.y, locData.coords.z + 0.05,
+                    locData.coords.x, locData.coords.y, locData.coords.z + 0.5,
                     0.0, 0.0, 0.0,
                     0.0, 0.0, 0.0,
                     0.3, 0.3, 0.3,
@@ -399,7 +399,7 @@ function DoTherapyStep(stepData, stepNumber, onComplete)
             if dist < 50.0 then
                 DrawMarker(
                     2,
-                    stepCoords.x, stepCoords.y, stepCoords.z + 0.05,
+                    stepCoords.x, stepCoords.y, stepCoords.z + 0.5,
                     0.0, 0.0, 0.0,
                     0.0, 0.0, 0.0,
                     0.3, 0.3, 0.3,
