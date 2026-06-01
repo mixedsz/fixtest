@@ -47,11 +47,11 @@ Config.TherapyLocations = {
         showBlip = true,
         ped = {
             model  = 's_m_m_doctor_01',
-            coords = vec4(319.1278, -588.3556, 43.2841, 160.5713),
+            coords = vec4(318.9921, -588.3723, 42.2841, 175.1992),
         },
         steps = {
             {
-                coords = vec4(322.3745, -592.3754, 43.2841, 68.9359),
+                coords = vec3(322.3745, -592.3754, 43.2841),
                 progress = {
                     duration  = 20000,
                     label     = 'Leg Stretching...',
@@ -65,7 +65,7 @@ Config.TherapyLocations = {
                 },
             },
             {
-                coords = vec4(319.3133, -593.7554, 43.2841, 344.1032),
+                coords = vec3(319.3133, -593.7554, 43.2841),
                 progress = {
                     duration  = 20000,
                     label     = 'Arm Stretching...',
@@ -79,7 +79,7 @@ Config.TherapyLocations = {
                 },
             },
             {
-                coords = vec4(316.1853, -592.1685, 43.2841, 333.1860),
+                coords = vec3(316.1853, -592.1685, 43.2841),
                 progress = {
                     duration  = 20000,
                     label     = 'Exercising...',
@@ -96,16 +96,16 @@ Config.TherapyLocations = {
     },
 
     CayoPerico = {
-        coords   = vec4(5198.0337, -5012.7637, 14.3701, 45.5706),
+        coords   = vec4(5197.2646, -5012.4966, 13.3094, 45.5715),
         cost     = 25000,
         showBlip = true,
         ped = {
             model  = 's_m_m_doctor_01',
-            coords = vec4(5198.0337, -5012.7637, 14.3701, 45.5706),
+            coords = vec4(5197.2646, -5012.4966, 13.3094, 45.5715),
         },
         steps = {
             {
-                coords = vec4(5195.3921, -5011.9624, 14.1762, 46.0579),
+                coords = vec3(5195.3921, -5011.9624, 14.1762),
                 progress = {
                     duration  = 6000,
                     label     = 'Stretching...',
@@ -119,7 +119,7 @@ Config.TherapyLocations = {
                 },
             },
             {
-                coords = vec4(5197.6641, -5009.8486, 14.2756, 39.5841),
+                coords = vec3(5197.6641, -5009.8486, 14.2756),
                 progress = {
                     duration  = 6000,
                     label     = 'Stretching...',

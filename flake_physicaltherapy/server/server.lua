@@ -174,8 +174,11 @@ lib.callback.register('flake_physicaltherapy:attemptTherapy', function(src, cost
         end
     end
 
-    -- Doctor slip: bypass payment if item is enabled and player has it
-    if Config.DoctorSlipItem.enable and hasItem(src, Config.DoctorSlipItem.item) then
+    -- Doctor slip: required when enabled
+    if Config.DoctorSlipItem.enable then
+        if not hasItem(src, Config.DoctorSlipItem.item) then
+            return { success = false, reason = 'NEEDS_SLIP', item = Config.DoctorSlipItem.item }
+        end
         removeItem(src, Config.DoctorSlipItem.item)
 
         if Config.Cooldown.enable then
@@ -189,7 +192,7 @@ lib.callback.register('flake_physicaltherapy:attemptTherapy', function(src, cost
         return { success = true, usedItem = true }
     end
 
-    -- No item: standard money check
+    -- No slip required: standard money check
     local money = getPlayerMoney(src)
     if money < cost then
         return { success = false, reason = 'NO_MONEY' }
@@ -335,7 +338,7 @@ local function serializeVal(v, indent)
                     if key:match('^[A-Za-z_][A-Za-z0-9_]*$') then
                         keyStr = key
                     else
-                        keyStr = string.format('%q', key)
+                        keyStr = '[' .. string.format('%q', key) .. ']'
                     end
                 else
                     keyStr = tostring(key)
@@ -393,6 +396,15 @@ local function serializeConfig(cfg)
         table.insert(lines, 'Config.DoctorSlipItem = ' .. serializeVal(cfg.DoctorSlipItem))
     end
 
+    if cfg.AdminPanelRoles then
+        table.insert(lines, '')
+        table.insert(lines, 'Config.AdminPanelRoles = ' .. serializeVal(cfg.AdminPanelRoles))
+    end
+
+    if cfg.AdminPanelRequireACE ~= nil then
+        table.insert(lines, string.format('Config.AdminPanelRequireACE = %s', serializeVal(cfg.AdminPanelRequireACE)))
+    end
+
     if cfg.TherapyLocations then
         table.insert(lines, '')
         table.insert(lines, 'Config.TherapyLocations = ' .. serializeVal(cfg.TherapyLocations))
@@ -414,6 +426,9 @@ lib.callback.register('flake_physicaltherapy:saveConfig', function(src, payload)
     -- Keep framework object keys safe from accidental overwrites
     payload.ESXgetSharedObject  = payload.ESXgetSharedObject  or Config.ESXgetSharedObject
     payload.QBCoreGetCoreObject = payload.QBCoreGetCoreObject or Config.QBCoreGetCoreObject
+    -- Preserve admin-only config that the UI never sends
+    payload.AdminPanelRoles      = payload.AdminPanelRoles      or Config.AdminPanelRoles
+    payload.AdminPanelRequireACE = payload.AdminPanelRequireACE ~= nil and payload.AdminPanelRequireACE or Config.AdminPanelRequireACE
 
     local serialized = serializeConfig(payload)
 
@@ -429,14 +444,16 @@ lib.callback.register('flake_physicaltherapy:saveConfig', function(src, payload)
     f:close()
 
     -- Update server memory
-    Config.Debug            = payload.Debug
-    Config.Distance         = payload.Distance
-    Config.System           = payload.System
-    Config.Cooldown         = payload.Cooldown
-    Config.DoctorSlipItem   = payload.DoctorSlipItem
-    Config.EMSJobs          = payload.EMSJobs
-    Config.EMSCount         = payload.EMSCount
-    Config.TherapyLocations = payload.TherapyLocations
+    Config.Debug               = payload.Debug
+    Config.Distance            = payload.Distance
+    Config.System              = payload.System
+    Config.Cooldown            = payload.Cooldown
+    Config.DoctorSlipItem      = payload.DoctorSlipItem
+    Config.EMSJobs             = payload.EMSJobs
+    Config.EMSCount            = payload.EMSCount
+    Config.TherapyLocations    = payload.TherapyLocations
+    Config.AdminPanelRoles     = payload.AdminPanelRoles
+    Config.AdminPanelRequireACE = payload.AdminPanelRequireACE
 
     -- Broadcast to clients so they hot-reload
     TriggerClientEvent('flake_physicaltherapy:reloadConfig', -1, payload)

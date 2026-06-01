@@ -79,6 +79,7 @@ end)
 
 local SpawnedPeds   = {}
 local ActiveThreads = {}
+local SpawnedBlips  = {}
 
 -- Convert payload tables back into vectors for FiveM
 local function applyPayloadToConfig(tbl)
@@ -129,6 +130,11 @@ local function StopAndCleanAllLocations()
     for _, name in ipairs(threadNames) do
         ActiveThreads[name] = nil
     end
+
+    for name, blip in pairs(SpawnedBlips) do
+        if DoesBlipExist(blip) then RemoveBlip(blip) end
+        SpawnedBlips[name] = nil
+    end
 end
 
 local function SpawnLocation(locName, locData)
@@ -138,16 +144,11 @@ local function SpawnLocation(locName, locData)
         Wait(10)
     end
 
-    local ped = CreatePed(
-        4,
-        modelHash,
-        locData.ped.coords.x,
-        locData.ped.coords.y,
-        locData.ped.coords.z - 1.0,
-        locData.ped.coords.w,
-        false,
-        true
-    )
+    local px = locData.ped.coords.x
+    local py = locData.ped.coords.y
+    local pz = locData.ped.coords.z
+
+    local ped = CreatePed(4, modelHash, px, py, pz, locData.ped.coords.w, false, true)
 
     SetEntityInvincible(ped, true)
     SetBlockingOfNonTemporaryEvents(ped, true)
@@ -157,6 +158,20 @@ local function SpawnLocation(locName, locData)
 
     SpawnedPeds[locName] = ped
     ActiveThreads[locName] = true
+
+    -- Blip
+    if locData.showBlip then
+        local blip = AddBlipForCoord(locData.ped.coords.x, locData.ped.coords.y, locData.ped.coords.z)
+        SetBlipSprite(blip, locData.blipId or 61)
+        SetBlipDisplay(blip, 4)
+        SetBlipScale(blip, 0.8)
+        SetBlipColour(blip, 2)
+        SetBlipAsShortRange(blip, true)
+        BeginTextCommandSetBlipName('STRING')
+        AddTextComponentString(locName)
+        EndTextCommandSetBlipName(blip)
+        SpawnedBlips[locName] = blip
+    end
 
     -- Interaction system
     if Config.System == 'ox_target' then
@@ -217,18 +232,18 @@ local function SpawnLocation(locName, locData)
             Wait(0)
 
             local playerCoords = GetEntityCoords(PlayerPedId())
-            local targetCoords = vec3(locData.coords.x, locData.coords.y, locData.coords.z)
-            local dist         = #(playerCoords - targetCoords)
+            local pedPos       = locData.ped.coords
+            local dist         = #(playerCoords - vec3(pedPos.x, pedPos.y, pedPos.z))
 
             if dist < 15.0 then
                 DrawMarker(
                     2,
-                    locData.coords.x, locData.coords.y, locData.coords.z,
+                    pedPos.x, pedPos.y, pedPos.z,
                     0.0, 0.0, 0.0,
                     0.0, 0.0, 0.0,
-                    0.3, 0.3, 0.3,
+                    0.5, 0.5, 0.5,
                     0, 255, 0, 150,
-                    false, false, 2, true, nil, nil, false
+                    false, false, 2, false, nil, nil, false
                 )
             end
         end
@@ -298,6 +313,10 @@ function StartTherapy(locName, locData)
                 local emsCount = result.emsCount or 0
                 Config.Notify('There are ' .. emsCount .. " EMS online, we're unavailable now.", 'error')
 
+            elseif result.reason == 'NEEDS_SLIP' then
+                local itemName = result.item or 'doctor slip'
+                Config.Notify("You need a " .. itemName .. " to start therapy!", 'error')
+
             elseif result.reason == 'NO_MONEY' then
                 Config.Notify("You don't have enough money to start therapy!", 'error')
 
@@ -362,8 +381,7 @@ function DoTherapyStep(stepData, stepNumber, onComplete)
         return
     end
 
-    local stepCoords  = vec3(stepData.coords.x, stepData.coords.y, stepData.coords.z)
-    local stepHeading = stepData.coords.w
+    local stepCoords = vec3(stepData.coords.x, stepData.coords.y, stepData.coords.z)
 
     CreateThread(function()
         local done = false
@@ -374,16 +392,16 @@ function DoTherapyStep(stepData, stepNumber, onComplete)
             local playerCoords = GetEntityCoords(PlayerPedId())
             local dist         = #(playerCoords - stepCoords)
 
-            -- Yellow marker visible from 50 m
+            -- Inverted cone: tip touches floor, visible from 50 m
             if dist < 50.0 then
                 DrawMarker(
                     2,
                     stepCoords.x, stepCoords.y, stepCoords.z,
                     0.0, 0.0, 0.0,
                     0.0, 0.0, 0.0,
-                    0.3, 0.3, 0.3,
+                    0.5, 0.5, 0.5,
                     255, 255, 0, 150,
-                    false, false, 2, true, nil, nil, false
+                    false, false, 2, false, nil, nil, false
                 )
             end
 
@@ -395,9 +413,6 @@ function DoTherapyStep(stepData, stepNumber, onComplete)
                     done = true
                     Config.hideTextUI()
                     Config.Notify("Keep going, you're almost done!", 'success')
-
-                    -- Face the correct heading for the animation
-                    SetEntityHeading(PlayerPedId(), stepHeading)
 
                     -- ox_lib progress bar (blocks movement/combat, plays anim)
                     lib.progressBar(stepData.progress)
