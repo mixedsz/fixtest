@@ -399,7 +399,7 @@ function DoTherapyStep(stepData, stepNumber, onComplete)
             if dist < 50.0 then
                 DrawMarker(
                     2,
-                    stepCoords.x, stepCoords.y, stepCoords.z,
+                    stepCoords.x, stepCoords.y, stepCoords.z + 0.05,
                     0.0, 0.0, 0.0,
                     0.0, 0.0, 0.0,
                     0.3, 0.3, 0.3,

@@ -338,7 +338,7 @@ local function serializeVal(v, indent)
                     if key:match('^[A-Za-z_][A-Za-z0-9_]*$') then
                         keyStr = key
                     else
-                        keyStr = string.format('%q', key)
+                        keyStr = '[' .. string.format('%q', key) .. ']'
                     end
                 else
                     keyStr = tostring(key)
