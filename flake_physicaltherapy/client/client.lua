@@ -154,19 +154,10 @@ local function SpawnLocation(locName, locData)
     SetBlockingOfNonTemporaryEvents(ped, true)
     SetPedDiesWhenInjured(ped, false)
     SetEntityAsMissionEntity(ped, true, true)
+    FreezeEntityPosition(ped, true)
 
     SpawnedPeds[locName] = ped
     ActiveThreads[locName] = true
-
-    -- Snap to ground then freeze
-    CreateThread(function()
-        for _ = 1, 10 do Wait(0) end
-        PlaceObjectOnGroundProperly(ped)
-        Wait(100)
-        if DoesEntityExist(ped) then
-            FreezeEntityPosition(ped, true)
-        end
-    end)
 
     -- Blip
     if locData.showBlip then
