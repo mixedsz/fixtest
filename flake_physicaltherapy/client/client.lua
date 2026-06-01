@@ -237,11 +237,11 @@ local function SpawnLocation(locName, locData)
 
             if dist < 15.0 then
                 DrawMarker(
-                    2,
-                    locData.coords.x, locData.coords.y, locData.coords.z,
+                    1,
+                    locData.coords.x, locData.coords.y, locData.coords.z + 0.1,
                     0.0, 0.0, 0.0,
                     0.0, 0.0, 0.0,
-                    0.3, 0.3, 0.3,
+                    0.5, 0.5, 0.3,
                     0, 255, 0, 150,
                     false, false, 2, true, nil, nil, false
                 )
@@ -396,11 +396,11 @@ function DoTherapyStep(stepData, stepNumber, onComplete)
             -- Yellow marker visible from 50 m
             if dist < 50.0 then
                 DrawMarker(
-                    2,
-                    stepCoords.x, stepCoords.y, stepCoords.z,
+                    1,
+                    stepCoords.x, stepCoords.y, stepCoords.z + 0.1,
                     0.0, 0.0, 0.0,
                     0.0, 0.0, 0.0,
-                    0.3, 0.3, 0.3,
+                    0.5, 0.5, 0.3,
                     255, 255, 0, 150,
                     false, false, 2, true, nil, nil, false
                 )

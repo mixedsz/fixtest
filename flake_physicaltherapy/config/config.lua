@@ -47,7 +47,7 @@ Config.TherapyLocations = {
         showBlip = true,
         ped = {
             model  = 's_m_m_doctor_01',
-            coords = vec4(319.1278, -588.3556, 43.2841, 160.5713),
+            coords = vec4(318.9921, -588.3723, 42.2841, 175.1992),
         },
         steps = {
             {
@@ -96,12 +96,12 @@ Config.TherapyLocations = {
     },
 
     CayoPerico = {
-        coords   = vec4(5198.0337, -5012.7637, 14.3701, 45.5706),
+        coords   = vec4(5197.2646, -5012.4966, 13.3094, 45.5715),
         cost     = 25000,
         showBlip = true,
         ped = {
             model  = 's_m_m_doctor_01',
-            coords = vec4(5198.0337, -5012.7637, 14.3701, 45.5706),
+            coords = vec4(5197.2646, -5012.4966, 13.3094, 45.5715),
         },
         steps = {
             {
