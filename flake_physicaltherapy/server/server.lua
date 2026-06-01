@@ -396,6 +396,15 @@ local function serializeConfig(cfg)
         table.insert(lines, 'Config.DoctorSlipItem = ' .. serializeVal(cfg.DoctorSlipItem))
     end
 
+    if cfg.AdminPanelRoles then
+        table.insert(lines, '')
+        table.insert(lines, 'Config.AdminPanelRoles = ' .. serializeVal(cfg.AdminPanelRoles))
+    end
+
+    if cfg.AdminPanelRequireACE ~= nil then
+        table.insert(lines, string.format('Config.AdminPanelRequireACE = %s', serializeVal(cfg.AdminPanelRequireACE)))
+    end
+
     if cfg.TherapyLocations then
         table.insert(lines, '')
         table.insert(lines, 'Config.TherapyLocations = ' .. serializeVal(cfg.TherapyLocations))
@@ -417,6 +426,9 @@ lib.callback.register('flake_physicaltherapy:saveConfig', function(src, payload)
     -- Keep framework object keys safe from accidental overwrites
     payload.ESXgetSharedObject  = payload.ESXgetSharedObject  or Config.ESXgetSharedObject
     payload.QBCoreGetCoreObject = payload.QBCoreGetCoreObject or Config.QBCoreGetCoreObject
+    -- Preserve admin-only config that the UI never sends
+    payload.AdminPanelRoles      = payload.AdminPanelRoles      or Config.AdminPanelRoles
+    payload.AdminPanelRequireACE = payload.AdminPanelRequireACE ~= nil and payload.AdminPanelRequireACE or Config.AdminPanelRequireACE
 
     local serialized = serializeConfig(payload)
 
@@ -432,14 +444,16 @@ lib.callback.register('flake_physicaltherapy:saveConfig', function(src, payload)
     f:close()
 
     -- Update server memory
-    Config.Debug            = payload.Debug
-    Config.Distance         = payload.Distance
-    Config.System           = payload.System
-    Config.Cooldown         = payload.Cooldown
-    Config.DoctorSlipItem   = payload.DoctorSlipItem
-    Config.EMSJobs          = payload.EMSJobs
-    Config.EMSCount         = payload.EMSCount
-    Config.TherapyLocations = payload.TherapyLocations
+    Config.Debug               = payload.Debug
+    Config.Distance            = payload.Distance
+    Config.System              = payload.System
+    Config.Cooldown            = payload.Cooldown
+    Config.DoctorSlipItem      = payload.DoctorSlipItem
+    Config.EMSJobs             = payload.EMSJobs
+    Config.EMSCount            = payload.EMSCount
+    Config.TherapyLocations    = payload.TherapyLocations
+    Config.AdminPanelRoles     = payload.AdminPanelRoles
+    Config.AdminPanelRequireACE = payload.AdminPanelRequireACE
 
     -- Broadcast to clients so they hot-reload
     TriggerClientEvent('flake_physicaltherapy:reloadConfig', -1, payload)
