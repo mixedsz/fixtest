@@ -232,13 +232,13 @@ local function SpawnLocation(locName, locData)
             Wait(0)
 
             local playerCoords = GetEntityCoords(PlayerPedId())
-            local targetCoords = vec3(locData.coords.x, locData.coords.y, locData.coords.z)
-            local dist         = #(playerCoords - targetCoords)
+            local pedPos       = locData.ped.coords
+            local dist         = #(playerCoords - vec3(pedPos.x, pedPos.y, pedPos.z))
 
             if dist < 15.0 then
                 DrawMarker(
                     2,
-                    locData.coords.x, locData.coords.y, locData.coords.z,
+                    pedPos.x, pedPos.y, pedPos.z,
                     0.0, 0.0, 0.0,
                     0.0, 0.0, 0.0,
                     0.5, 0.5, 0.5,
