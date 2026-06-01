@@ -243,7 +243,7 @@ local function SpawnLocation(locName, locData)
                     0.0, 0.0, 0.0,
                     0.5, 0.5, 0.5,
                     0, 255, 0, 150,
-                    false, false, 2, true, nil, nil, false
+                    false, false, 2, false, nil, nil, false
                 )
             end
         end
@@ -401,7 +401,7 @@ function DoTherapyStep(stepData, stepNumber, onComplete)
                     0.0, 0.0, 0.0,
                     0.5, 0.5, 0.5,
                     255, 255, 0, 150,
-                    false, false, 2, true, nil, nil, false
+                    false, false, 2, false, nil, nil, false
                 )
             end
 
