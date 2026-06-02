@@ -24,10 +24,10 @@ window.addEventListener('message', function (event) {
             { dict: 'mini@triathlon',          clip: 'idle_f',           label: 'Arm Stretching...' },
             { dict: 'timetable@reunited@ig_2', clip: 'jimmy_getknocked', label: 'Exercising...'     },
         ];
-        const mkStep = (c, i) => ({
-            coords: c || { x: 0, y: 0, z: 0 },
+        const mkStep = (c, i) => c ? {
+            coords: { x: c.x, y: c.y, z: c.z },
             progress: { duration: 20000, label: defaultAnims[i].label, canCancel: false, disable: { move: true, combat: true }, anim: { dict: defaultAnims[i].dict, clip: defaultAnims[i].clip, flag: 7 } }
-        });
+        } : null;
         // Place interaction marker 1.5m in front of the ped
         // GTA V heading: 0=north(+Y), 90=east(+X) → forward = (sin H, cos H)
         const headRad = ((ped.w || 0) * Math.PI) / 180;
