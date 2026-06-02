@@ -92,8 +92,14 @@ local function placementRay(ignoreEnt)
     )
     if not hit then return false, nil end
 
-    -- Surface is mostly horizontal (floor) — use Z directly
+    -- Surface is mostly horizontal (floor) — check for a higher walkable surface above (e.g. mat→wooden floor)
     if normal and normal.z > 0.5 then
+        local _, uhit, upos, _ = GetShapeTestResult(
+            StartShapeTestRay(pos.x, pos.y, pos.z + 0.05, pos.x, pos.y, pos.z + 1.5, -1, PlayerPedId(), 0)
+        )
+        if uhit then
+            return true, upos
+        end
         return true, pos
     end
 
@@ -169,7 +175,7 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
 
             if stage == 'ped' then
                 if rayHit then
-                    SetEntityCoordsNoOffset(ghostPed, rayPos.x, rayPos.y, rayPos.z + 1.0, false, false, false)
+                    SetEntityCoordsNoOffset(ghostPed, rayPos.x, rayPos.y, rayPos.z, false, false, false)
                 end
 
                 if IsDisabledControlJustPressed(0, 241) or IsDisabledControlPressed(0, 174) then
@@ -182,7 +188,7 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
 
                 if IsDisabledControlJustPressed(0, 24) then
                     local pos = GetEntityCoords(ghostPed)
-                    placed.ped = { x = pos.x, y = pos.y, z = pos.z - 1.0, w = pedHeading }
+                    placed.ped = { x = pos.x, y = pos.y, z = pos.z, w = pedHeading }
                     SetEntityAlpha(ghostPed, 50, false)
                     stage = 'step1'
                 elseif IsDisabledControlJustPressed(0, 25) then
@@ -196,14 +202,14 @@ RegisterNUICallback('startPedPlacement', function(data, cb)
                 for i = 1, n - 1 do
                     local s = placed.steps[i]
                     if s then
-                        DrawMarker(1, s.x, s.y, s.z, 0,0,0, 0,0,0,
+                        DrawMarker(1, s.x, s.y, s.z + 0.1, 0,0,0, 0,0,0,
                             0.5, 0.5, 0.4, 0, 200, 100, 220, false, true, 2, nil, nil, false)
                     end
                 end
 
                 -- cursor marker for current step (orange)
                 if rayHit then
-                    DrawMarker(1, rayPos.x, rayPos.y, rayPos.z, 0,0,0, 0,0,0,
+                    DrawMarker(1, rayPos.x, rayPos.y, rayPos.z + 0.1, 0,0,0, 0,0,0,
                         0.5, 0.5, 0.4, 255, 165, 0, 180, false, true, 2, nil, nil, false)
                 end
 

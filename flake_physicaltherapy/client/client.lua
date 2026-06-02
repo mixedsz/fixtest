@@ -229,10 +229,6 @@ local function SpawnLocation(locName, locData)
     -- Green marker at the interaction point in front of the ped
     CreateThread(function()
         local markerPos = locData.coords or locData.ped.coords
-        -- Snap to visual surface (collision Z can sit below the rendered floor in interiors)
-        local drawZ = markerPos.z
-        local found, groundZ = GetGroundZFor_3dCoord(markerPos.x, markerPos.y, markerPos.z + 3.0, false)
-        if found then drawZ = groundZ end
 
         while ActiveThreads[locName] do
             Wait(0)
@@ -243,7 +239,7 @@ local function SpawnLocation(locName, locData)
             if dist < 15.0 then
                 DrawMarker(
                     2,
-                    markerPos.x, markerPos.y, drawZ,
+                    markerPos.x, markerPos.y, markerPos.z + 0.1,
                     0.0, 0.0, 0.0,
                     0.0, 0.0, 0.0,
                     0.5, 0.5, 0.5,
@@ -388,11 +384,6 @@ function DoTherapyStep(stepData, stepNumber, onComplete)
 
     local stepCoords = vec3(stepData.coords.x, stepData.coords.y, stepData.coords.z)
 
-    -- Snap marker to visual surface (collision Z can sit below the rendered floor in interiors)
-    local drawZ = stepCoords.z
-    local found, groundZ = GetGroundZFor_3dCoord(stepCoords.x, stepCoords.y, stepCoords.z + 3.0, false)
-    if found then drawZ = groundZ end
-
     CreateThread(function()
         local done = false
 
@@ -405,7 +396,7 @@ function DoTherapyStep(stepData, stepNumber, onComplete)
             if dist < 50.0 then
                 DrawMarker(
                     2,
-                    stepCoords.x, stepCoords.y, drawZ,
+                    stepCoords.x, stepCoords.y, stepCoords.z + 0.1,
                     0.0, 0.0, 0.0,
                     0.0, 0.0, 0.0,
                     0.5, 0.5, 0.5,
