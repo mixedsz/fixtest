@@ -226,19 +226,20 @@ local function SpawnLocation(locName, locData)
         end)
     end
 
-    -- Green marker at the NPC location
+    -- Green marker at the interaction point in front of the ped
     CreateThread(function()
+        local markerPos = locData.coords or locData.ped.coords
+
         while ActiveThreads[locName] do
             Wait(0)
 
             local playerCoords = GetEntityCoords(PlayerPedId())
-            local pedPos       = locData.ped.coords
-            local dist         = #(playerCoords - vec3(pedPos.x, pedPos.y, pedPos.z))
+            local dist         = #(playerCoords - vec3(markerPos.x, markerPos.y, markerPos.z))
 
             if dist < 15.0 then
                 DrawMarker(
                     2,
-                    pedPos.x, pedPos.y, pedPos.z,
+                    markerPos.x, markerPos.y, markerPos.z + 0.1,
                     0.0, 0.0, 0.0,
                     0.0, 0.0, 0.0,
                     0.5, 0.5, 0.5,
@@ -392,11 +393,10 @@ function DoTherapyStep(stepData, stepNumber, onComplete)
             local playerCoords = GetEntityCoords(PlayerPedId())
             local dist         = #(playerCoords - stepCoords)
 
-            -- Inverted cone: tip touches floor, visible from 50 m
             if dist < 50.0 then
                 DrawMarker(
                     2,
-                    stepCoords.x, stepCoords.y, stepCoords.z,
+                    stepCoords.x, stepCoords.y, stepCoords.z + 0.1,
                     0.0, 0.0, 0.0,
                     0.0, 0.0, 0.0,
                     0.5, 0.5, 0.5,
